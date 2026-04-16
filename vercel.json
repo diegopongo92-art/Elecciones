@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/onpe/candidatos",
+      "destination": "https://resultadoelectoral.onpe.gob.pe/presentacion-backend/eleccion-presidencial/participantes-ubicacion-geografica-nombre?idEleccion=10&tipoFiltro=eleccion"
+    },
+    {
+      "source": "/api/onpe/resumen",
+      "destination": "https://resultadoelectoral.onpe.gob.pe/presentacion-backend/resumen-general/totales?idEleccion=10&tipoFiltro=eleccion"
+    }
+  ]
+}
