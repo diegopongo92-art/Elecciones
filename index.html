@@ -3,38 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proyección ONPE 2026 | Análisis Electoral</title>
+    <title>Dashboard Electoral Peru 2026 | Analítica Diego Pongo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         html { scroll-behavior: smooth; }
-        .glass-header { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); }
-        .alerta-sorpasso { animation: pulse-red 2s infinite; border-color: #ef4444 !important; }
-        @keyframes pulse-red {
-            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
-            70% { box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
-        }
+        .glass-header { background: rgba(15, 23, 42, 0.98); backdrop-filter: blur(10px); }
+        /* Estilo sutil para tensión profesional (Dorado) */
+        .tension-electoral { border-color: #f59e0b !important; background-color: #fffbeb; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans pb-12">
 
-    <header class="glass-header text-white py-6 shadow-md mb-8 sticky top-0 z-50">
+    <header class="glass-header text-white py-6 shadow-lg mb-8 sticky top-0 z-50">
         <div class="max-w-6xl mx-auto px-4 md:px-8 flex flex-col md:flex-row justify-between items-center">
-            <div>
+            <div class="text-center md:text-left">
                 <h1 class="text-2xl md:text-3xl font-black tracking-tight">Proyección Presidencial <span class="text-blue-400">2026</span></h1>
-                <p class="text-slate-400 text-sm mt-1">Monitor analítico en tiempo real | Segunda Vuelta</p>
+                <p class="text-xs text-blue-300 font-medium tracking-wider mt-1.5 uppercase">Analítica & Desarrollo por Diego Pongo</p>
+                <p class="text-slate-400 text-xs mt-1">Monitor analítico en tiempo real | Segunda Vuelta</p>
             </div>
-            <div class="mt-4 md:mt-0 flex flex-col items-end">
-                <div class="flex items-center space-x-3 bg-slate-800 px-4 py-2 rounded-lg border border-slate-700">
-                    <span class="relative flex h-3 w-3" title="Auto-actualización activada">
+            <div class="mt-5 md:mt-0 flex flex-col items-center md:items-end">
+                <div class="flex items-center space-x-3 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700 shadow-inner">
+                    <span class="relative flex h-3 w-3" title="Auto-actualización cada 3 min activada">
                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                     </span>
-                    <span class="text-sm font-medium text-slate-200">Radar ONPE Activo</span>
+                    <span class="text-sm font-semibold text-slate-200 tracking-wide">Radar ONPE Activo</span>
                 </div>
-                <div id="hora-actualizacion" class="text-xs text-slate-400 mt-2 font-mono">
-                    Conectando con ONPE...
+                <div id="hora-actualizacion" class="text-xs text-slate-400 mt-2.5 font-mono">
+                    Sincronizando con ONPE...
                 </div>
             </div>
         </div>
@@ -43,35 +40,34 @@
     <div class="max-w-6xl mx-auto px-4 md:px-8">
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-blue-500 hover:shadow-md transition-shadow">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-blue-500">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Actas Contabilizadas</h3>
                 <p id="avance-txt" class="text-4xl font-black text-slate-800 mt-2">--%</p>
-                <div class="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden">
+                <div class="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden border border-slate-200 shadow-inner">
                     <div id="avance-bar" class="bg-blue-500 h-2 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
                 </div>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-indigo-500 hover:shadow-md transition-shadow">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-violet-500">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Votos Válidos</h3>
                 <p id="votos-actuales-txt" class="text-4xl font-black text-slate-800 mt-2">--</p>
             </div>
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-orange-500 hover:shadow-md transition-shadow">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-amber-500">
                 <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Votos por Contar (Est.)</h3>
-                <p id="votos-restantes-txt" class="text-4xl font-black text-orange-600 mt-2">--</p>
+                <p id="votos-restantes-txt" class="text-4xl font-black text-amber-600 mt-2">--</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <div id="tarjeta-disputa" class="lg:col-span-2 bg-white border-2 border-blue-100 rounded-2xl p-6 shadow-md relative overflow-hidden transition-all duration-500">
-                <div class="absolute top-0 right-0 w-32 h-32 bg-slate-50 rounded-bl-full -z-10"></div>
-                <div class="flex justify-between items-center mb-6">
+            <div id="tarjeta-disputa" class="lg:col-span-2 bg-white border-2 border-slate-200 rounded-2xl p-7 shadow-sm relative overflow-hidden transition-all duration-500">
+                <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
                     <h2 class="text-lg font-bold text-slate-800 flex items-center">
-                        <span class="bg-blue-100 text-blue-600 p-2 rounded-lg mr-3">⚔️</span>
+                        <span id="disputa-icono" class="bg-slate-100 text-slate-500 p-2 rounded-lg mr-3 transition-colors">⚔️</span>
                         Foco Electoral: La pelea por el 2do Lugar
                     </h2>
-                    <span id="alerta-sorpasso-badge" class="hidden bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-bold animate-pulse">¡ALERTA SORPASSO!</span>
+                    <span id="alerta-sorpasso-badge" class="hidden bg-amber-100 text-amber-800 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-amber-200 shadow-sm">FINAL DE FOTOGRAFÍA</span>
                 </div>
                 <div id="disputa-container" class="text-slate-700 min-h-[100px] flex items-center justify-center">
-                    <p class="text-sm text-slate-500 animate-pulse">Analizando la brecha en vivo...</p>
+                    <p class="text-sm text-slate-500 animate-pulse">Analizando tendencia recuente...</p>
                 </div>
             </div>
 
@@ -87,14 +83,14 @@
             <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                 <div class="flex items-center space-x-2">
                     <h2 class="font-bold text-slate-800 text-lg">Tabla de Posiciones y Proyecciones</h2>
-                    <span id="actualizando-spinner" class="hidden text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded animate-pulse">Actualizando...</span>
+                    <span id="actualizando-spinner" class="hidden text-xs bg-blue-100 text-blue-600 px-2.5 py-1 rounded-full animate-pulse font-semibold">Actualizando...</span>
                 </div>
                 <a href="#metodologia" class="text-xs font-semibold text-blue-600 hover:text-blue-800 underline">Ver metodología</a>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-white text-slate-400 text-xs uppercase tracking-wider border-b-2 border-slate-100">
+                        <tr class="bg-white text-slate-400 text-xs uppercase tracking-wider border-b-2 border-slate-100 relative">
                             <th class="p-4 font-bold w-16 text-center">Pos</th>
                             <th class="p-4 font-bold">Candidato</th>
                             <th class="p-4 font-bold text-right">Votos Contados</th>
@@ -104,43 +100,51 @@
                     </thead>
                     <tbody id="tabla-candidatos" class="text-sm divide-y divide-slate-100">
                         <tr>
-                            <td colspan="5" class="p-8 text-center text-slate-500">Conectando con servidores de la ONPE...</td>
+                            <td colspan="5" class="p-12 text-center text-slate-500 font-medium">Sincronizando datos electorales en vivo...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
         
-        <section id="metodologia" class="bg-slate-800 text-slate-300 rounded-2xl p-8 shadow-lg">
-            <h2 class="text-xl font-bold text-white mb-4 border-b border-slate-700 pb-2">Metodología de Proyección Analítica</h2>
-            <p class="mb-6 text-sm leading-relaxed">Este dashboard no representa los resultados oficiales finales de la ONPE, sino una herramienta estadística que procesa los datos públicos en tiempo real. Utiliza un modelo dinámico de dos fases para proyectar los resultados al 100% de actas escrutadas.</p>
+        <section id="metodologia" class="bg-slate-900 text-slate-300 rounded-2xl p-8 shadow-xl border border-slate-800">
+            <h2 class="text-xl font-bold text-white mb-5 border-b border-slate-700 pb-3 flex items-center">
+                <span class="text-blue-400 mr-2">📊</span>
+                Metodología de Proyección Diego Pongo Analítica
+            </h2>
+            <p class="mb-7 text-sm leading-relaxed text-slate-400">Este dashboard utiliza un modelo dinámico propio desarrollado por Diego Pongo, el cual procesa los datos públicos de la ONPE en tiempo real para proyectar resultados al 100% de actas escrutadas. No representa un resultado oficial final.</p>
             
-            <div class="grid md:grid-cols-2 gap-8">
-                <div class="bg-slate-900/50 p-5 rounded-xl border border-slate-700">
-                    <div class="flex items-center mb-3">
-                        <span class="bg-slate-700 text-slate-100 text-xs font-bold px-2 py-1 rounded mr-2">Fase 1</span>
-                        <h3 class="text-white font-semibold">Proyección Lineal</h3>
+            <div class="grid md:grid-cols-2 gap-8 font-mono text-xs">
+                <div class="bg-black/30 p-5 rounded-xl border border-slate-700 hover:border-slate-600 transition-colors">
+                    <div class="flex items-center mb-3.5">
+                        <span class="bg-slate-700 text-slate-100 text-[10px] font-black px-2.5 py-1 rounded-full mr-2.5">MODELO A</span>
+                        <h3 class="text-white font-semibold text-sm">Proyección Lineal Directa</h3>
                     </div>
-                    <p class="text-xs text-slate-400 mb-3">Extrapolación directa que asume que la proporción de votos restantes será idéntica a la actual.</p>
+                    <p class="text-slate-400 mb-3 text-justify">Extrapolación que asume que la proporción de votos restantes será idéntica a la actual. Utilizado como línea base.</p>
                 </div>
 
-                <div class="bg-slate-900/50 p-5 rounded-xl border border-blue-900/50">
-                    <div class="flex items-center mb-3">
-                        <span class="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded mr-2 flex items-center">⚡ Fase 2</span>
-                        <h3 class="text-blue-100 font-semibold">Tendencia Reciente (Momentum)</h3>
+                <div class="bg-black/30 p-5 rounded-xl border border-blue-900/50 hover:border-blue-800 transition-colors">
+                    <div class="flex items-center mb-3.5">
+                        <span class="bg-blue-600 text-white text-[10px] font-black px-2.5 py-1 rounded-full mr-2.5 flex items-center">⚡ MODELO B</span>
+                        <h3 class="text-blue-100 font-semibold text-sm">Momentum (Tendencia Reciente)</h3>
                     </div>
-                    <p class="text-xs text-slate-400 mb-3">Mide la "velocidad" reciente a la que llegan los votos para ajustar la curva, ideal para el sesgo geográfico.</p>
+                    <p class="text-slate-400 mb-3 text-justify">Mide la velocidad de llegada de votos entre actualizaciones para ajustar la curva final. Corrige sesgos geográficos o de voto rural/extranjero.</p>
                 </div>
+            </div>
+            <div class="mt-8 text-center text-xs text-slate-600 border-t border-slate-800 pt-4">
+                Dashboard desarrollado independientemente usando datos públicos de acceso abierto. 2026.
             </div>
         </section>
 
     </div>
 
     <script>
+        // Configuración Proxy Vercel
         const URL_CANDS = "/api/onpe/candidatos";
         const URL_RES = "/api/onpe/resumen";
-        let graficoDonut = null; // Variable global para el gráfico
+        let graficoDonut = null;
 
+        // Mapeo Inteligente de Imágenes
         function obtenerRutaImagen(nombreCandidato) {
             const nombreUpper = nombreCandidato.toUpperCase();
             if (nombreUpper.includes("KEIKO") || nombreUpper.includes("FUJIMORI")) return "Keiko.png";
@@ -156,7 +160,6 @@
                     fetch(URL_CANDS).then(res => res.json()),
                     fetch(URL_RES).then(res => res.json())
                 ]);
-                
                 procesarDatos(resCands.data || [], resResumen.data || {});
             } catch (error) {
                 console.error("Error consultando la API:", error);
@@ -167,16 +170,15 @@
 
         function renderizarGrafico(topCandidatos) {
             const ctx = document.getElementById('grafico-top').getContext('2d');
-            const labels = topCandidatos.map(c => c.nombre.split(' ')[0]); // Solo el primer nombre para espacio
+            const labels = topCandidatos.map(c => c.nombre.split(' ')[0]); 
             const data = topCandidatos.map(c => c.votosActuales);
-            
-            // Colores elegantes
-            const colores = ['#3b82f6', '#8b5cf6', '#f97316'];
+            const colores = ['#3b82f6', '#8b5cf6', '#f59e0b']; // Azul, Violeta, Dorado
 
             if (graficoDonut) {
                 graficoDonut.data.datasets[0].data = data;
                 graficoDonut.update();
             } else {
+                Chart.defaults.color = '#94a3b8'; // Slate 400
                 graficoDonut = new Chart(ctx, {
                     type: 'doughnut',
                     data: {
@@ -192,27 +194,27 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } }
+                            legend: { position: 'bottom', labels: { boxWidth: 10, padding: 15, font: { size: 11, family: 'sans-serif', weight: '500' } } },
+                            tooltip: { callbacks: { label: function(context) { return ` ${context.label}: ${context.raw.toLocaleString('es-PE')} votos`; } } }
                         },
-                        cutout: '70%'
+                        cutout: '72%'
                     }
                 });
             }
         }
 
         function procesarDatos(cands, resumen) {
-            // LÓGICA DE HORA
+            // LÓGICA DE HORA DEL SERVIDOR ONPE (Timestamp fix)
             let fechaRaw = resumen.fechaAct || resumen.fechaActualizacion || resumen.fecha || "";
-            let horaRaw = resumen.horaAct || resumen.horaActualizacion || resumen.hora || "";
             const horaElemento = document.getElementById('hora-actualizacion');
-            let posibleDatoCrudo = fechaRaw || horaRaw;
             
-            if (posibleDatoCrudo !== "") {
-                if (!isNaN(posibleDatoCrudo) && String(posibleDatoCrudo).length >= 10) {
-                    const fechaTraducida = new Date(parseInt(posibleDatoCrudo));
-                    horaElemento.innerText = `Hora del servidor ONPE: ${fechaTraducida.toLocaleTimeString('es-PE')} (${fechaTraducida.toLocaleDateString('es-PE')})`;
+            if (fechaRaw !== "") {
+                if (!isNaN(fechaRaw) && String(fechaRaw).length >= 10) {
+                    const fechaTraducida = new Date(parseInt(fechaRaw));
+                    // Formato: Hora ONPE: 14:30:00 (16/04/2026)
+                    horaElemento.innerText = `Hora ONPE: ${fechaTraducida.toLocaleTimeString('es-PE')} (${fechaTraducida.toLocaleDateString('es-PE')})`;
                 } else {
-                    horaElemento.innerText = `Corte oficial ONPE: ${fechaRaw} ${horaRaw}`.trim();
+                    horaElemento.innerText = `Corte oficial ONPE: ${fechaRaw}`;
                 }
                 horaElemento.classList.replace('text-slate-400', 'text-green-400');
             }
@@ -221,7 +223,7 @@
             const pctAvance = parseFloat(resumen.actasContabilizadas) || 0;
             let totalVotosActuales = 0;
             
-            let historial = JSON.parse(localStorage.getItem('onpe_memoria_votos')) || { pct: 0, cands: {} };
+            let historial = JSON.parse(localStorage.getItem('onpe_memoria_votos_dp')) || { pct: 0, cands: {} };
             let usarTendenciaAvanzada = false;
             let deltaPct = pctAvance - historial.pct;
 
@@ -234,183 +236,138 @@
                 
                 let proyeccion = 0;
                 let tipoProyeccion = "Lineal";
-                
-                // NUEVO: Calcular los nuevos votos sumados (Delta)
                 let nuevosVotos = 0;
-                if (historial.cands[nombre] !== undefined) {
-                    nuevosVotos = votos - historial.cands[nombre];
-                }
+                if (historial.cands[nombre] !== undefined) nuevosVotos = votos - historial.cands[nombre];
 
                 if (usarTendenciaAvanzada && historial.cands[nombre] !== undefined) {
                     const velocidadVotosPorPorcentaje = nuevosVotos / deltaPct; 
                     const porcentajeFaltante = 100 - pctAvance;
-                    
                     proyeccion = Math.round(votos + (velocidadVotosPorPorcentaje * porcentajeFaltante));
                     tipoProyeccion = "Tendencia";
-                    
                     if (proyeccion < votos) proyeccion = Math.round(votos / (pctAvance / 100));
                 } else {
                     proyeccion = (pctAvance > 0) ? Math.round(votos / (pctAvance / 100)) : 0;
                 }
-
                 return { nombre, partido: c.nombreAgrupacionPolitica, votosActuales: votos, proyeccion, tipoProyeccion, nuevosVotos };
             });
 
-            // Guardar en memoria para la próxima vez
-            let nuevoHistorial = { pct: pctAvance, cands: {} };
-            candidatos.forEach(c => nuevoHistorial.cands[c.nombre] = c.votosActuales);
-            localStorage.setItem('onpe_memoria_votos', JSON.stringify(nuevoHistorial));
+            // Guardar en memoria (con key propia DP)
+            localStorage.setItem('onpe_memoria_votos_dp', JSON.stringify({ pct: pctAvance, cands: Object.fromEntries(candidatos.map(c => [c.nombre, c.votosActuales])) }));
 
             candidatos.sort((a, b) => b.votosActuales - a.votosActuales);
 
             // ACTUALIZAR TARJETAS SUPERIORES
             let votosRestantes = (pctAvance > 0 && pctAvance < 100) ? Math.round(totalVotosActuales * (100 - pctAvance) / pctAvance) : 0;
-
             document.getElementById('avance-txt').innerText = `${pctAvance.toFixed(2)}%`;
             document.getElementById('avance-bar').style.width = `${pctAvance}%`;
             document.getElementById('votos-actuales-txt').innerText = totalVotosActuales.toLocaleString('es-PE');
             document.getElementById('votos-restantes-txt').innerText = votosRestantes.toLocaleString('es-PE');
 
-            // --- RENDERIZAR GRÁFICO (Top 3) ---
-            if(candidatos.length >= 3) {
-                renderizarGrafico(candidatos.slice(0, 3));
-            }
+            // --- RENDERIZAR GRÁFICO ---
+            if(candidatos.length >= 3) renderizarGrafico(candidatos.slice(0, 3));
 
-            // --- LÓGICA DE DISPUTA ---
+            // --- LÓGICA DE DISPUTA (Estética Profesional Sin Parpadeos) ---
             if (candidatos.length >= 3) {
                 const cand2 = candidatos[1];
                 const cand3 = candidatos[2];
                 const diferenciaActual = cand2.votosActuales - cand3.votosActuales;
-                const diffAnterior = localStorage.getItem('onpe_diff_2_3');
+                const diffAnterior = localStorage.getItem('onpe_diff_2_3_dp');
                 let tendenciaHTML = "";
 
                 if (diffAnterior !== null && diffAnterior !== diferenciaActual.toString()) {
-                    const diffAnt = parseInt(diffAnterior);
-                    const cambio = diferenciaActual - diffAnt;
-                    if (cambio > 0) {
-                        tendenciaHTML = `<span class="text-green-600 font-semibold bg-green-50 px-3 py-1 rounded-full text-xs shadow-sm">▲ Brecha ampliada en ${Math.abs(cambio).toLocaleString('es-PE')} votos</span>`;
-                    } else if (cambio < 0) {
-                        tendenciaHTML = `<span class="text-orange-600 font-semibold bg-orange-50 px-3 py-1 rounded-full text-xs shadow-sm">▼ Brecha reducida en ${Math.abs(cambio).toLocaleString('es-PE')} votos</span>`;
-                    }
+                    const cambio = diferenciaActual - parseInt(diffAnterior);
+                    if (cambio > 0) tendenciaHTML = `<span class="text-emerald-600 font-semibold bg-emerald-50 px-3 py-1 rounded-full text-xs shadow-sm border border-emerald-100">▲ Brecha ampliada en ${Math.abs(cambio).toLocaleString('es-PE')}</span>`;
+                    else if (cambio < 0) tendenciaHTML = `<span class="text-orange-600 font-semibold bg-orange-50 px-3 py-1 rounded-full text-xs shadow-sm border border-orange-100">▼ Brecha reducida en ${Math.abs(cambio).toLocaleString('es-PE')}</span>`;
                 } else {
-                    tendenciaHTML = `<span class="text-slate-400 text-xs">Esperando tendencia...</span>`;
+                    tendenciaHTML = `<span class="text-slate-400 text-xs">Esperando tendencia en próxima actualización...</span>`;
                 }
-                localStorage.setItem('onpe_diff_2_3', diferenciaActual.toString());
+                localStorage.setItem('onpe_diff_2_3_dp', diferenciaActual.toString());
 
-                // NUEVO: Alerta Sorpasso (Si la diferencia es menor a 15,000)
+                // NUEVO: Tensión Estética Profesional (Si diff < 15,000)
                 const tarjetaDisputa = document.getElementById('tarjeta-disputa');
                 const badgeSorpasso = document.getElementById('alerta-sorpasso-badge');
+                const iconoDisputa = document.getElementById('disputa-icono');
                 if (diferenciaActual < 15000) {
-                    tarjetaDisputa.classList.add('alerta-sorpasso');
+                    tarjetaDisputa.classList.add('tension-electoral');
+                    iconoDisputa.classList.replace('text-slate-500', 'text-amber-600');
+                    iconoDisputa.classList.replace('bg-slate-100', 'bg-amber-100');
                     badgeSorpasso.classList.remove('hidden');
                 } else {
-                    tarjetaDisputa.classList.remove('alerta-sorpasso');
+                    tarjetaDisputa.classList.remove('tension-electoral');
+                    iconoDisputa.classList.replace('text-amber-600', 'text-slate-500');
+                    iconoDisputa.classList.replace('bg-amber-100', 'bg-slate-100');
                     badgeSorpasso.classList.add('hidden');
                 }
 
-                const imgCand2 = obtenerRutaImagen(cand2.nombre);
-                const imgCand3 = obtenerRutaImagen(cand3.nombre);
-
                 document.getElementById('disputa-container').innerHTML = `
                     <div class="w-full">
-                        <div class="flex flex-col md:flex-row items-center justify-between mb-4">
+                        <div class="flex flex-col md:flex-row items-center justify-between mb-5">
                             <div class="text-center md:text-left flex-1 flex flex-col md:flex-row items-center">
-                                ${imgCand2 ? `<img src="${imgCand2}" class="w-16 h-16 rounded-full object-cover border-4 border-white shadow-md mb-2 md:mb-0 md:mr-4">` : ''}
+                                ${obtenerRutaImagen(cand2.nombre) ? `<img src="${obtenerRutaImagen(cand2.nombre)}" class="w-16 h-16 rounded-full object-cover border-4 border-white shadow-md mb-3 md:mb-0 md:mr-4">` : ''}
                                 <div>
-                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">2do Puesto</div>
-                                    <div class="text-xl font-bold text-slate-800 leading-tight">${cand2.nombre}</div>
-                                    <div class="text-lg font-mono text-slate-600 mt-1">${cand2.votosActuales.toLocaleString('es-PE')}</div>
+                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">2do Lugar</div>
+                                    <div class="text-xl font-extrabold text-slate-900 leading-tight">${cand2.nombre}</div>
+                                    <div class="text-xl font-mono text-slate-700 mt-1">${cand2.votosActuales.toLocaleString('es-PE')}</div>
                                 </div>
                             </div>
-                            <div class="flex flex-col items-center justify-center flex-1 my-4 md:my-0">
+                            <div class="flex flex-col items-center justify-center flex-1 my-5 md:my-0">
                                 <div class="text-xs font-bold text-slate-400 uppercase mb-2">Diferencia</div>
-                                <div class="bg-slate-800 text-white font-mono text-2xl font-black px-6 py-2 rounded-xl shadow-inner">
+                                <div class="bg-slate-800 text-white font-mono text-3xl font-black px-7 py-2.5 rounded-2xl shadow-inner border border-slate-700">
                                     ${diferenciaActual.toLocaleString('es-PE')}
                                 </div>
                             </div>
                             <div class="text-center md:text-right flex-1 flex flex-col md:flex-row-reverse items-center">
-                                ${imgCand3 ? `<img src="${imgCand3}" class="w-16 h-16 rounded-full object-cover border-4 border-white shadow-md mb-2 md:mb-0 md:ml-4">` : ''}
+                                ${obtenerRutaImagen(cand3.nombre) ? `<img src="${obtenerRutaImagen(cand3.nombre)}" class="w-16 h-16 rounded-full object-cover border-4 border-white shadow-md mb-3 md:mb-0 md:ml-4">` : ''}
                                 <div>
-                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">3er Puesto</div>
-                                    <div class="text-xl font-bold text-slate-800 leading-tight">${cand3.nombre}</div>
-                                    <div class="text-lg font-mono text-slate-600 mt-1">${cand3.votosActuales.toLocaleString('es-PE')}</div>
+                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">3er Lugar</div>
+                                    <div class="text-xl font-extrabold text-slate-900 leading-tight">${cand3.nombre}</div>
+                                    <div class="text-xl font-mono text-slate-700 mt-1">${cand3.votosActuales.toLocaleString('es-PE')}</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="text-center border-t border-slate-100 pt-4">
+                        <div class="text-center border-t border-slate-100 pt-4 flex justify-center items-center min-h-[40px]">
                             ${tendenciaHTML}
                         </div>
                     </div>
                 `;
             }
 
-            // --- RENDERIZAR TABLA ---
+            // --- RENDERIZAR TABLA PROFESIONAL ---
             const tbody = document.getElementById('tabla-candidatos');
             tbody.innerHTML = '';
-
             candidatos.forEach((cand, index) => {
                 const pos = index + 1;
                 let estadoHTML = '';
-                const proyeccionSegundo = candidatos[1] ? candidatos[1].proyeccion : 0;
-                
-                if (pos <= 2) {
-                    estadoHTML = `<span class="bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-md text-xs font-bold border border-emerald-200">Clasifica</span>`;
-                } else {
-                    if (cand.proyeccion >= proyeccionSegundo) {
-                        estadoHTML = `<span class="bg-purple-100 text-purple-700 px-3 py-1.5 rounded-md text-xs font-bold border border-purple-200">Remontada Posible</span>`;
-                    } else if (cand.proyeccion < (candidatos[1] ? candidatos[1].votosActuales : 0)) {
-                        estadoHTML = `<span class="bg-slate-100 text-slate-500 px-3 py-1.5 rounded-md text-xs font-bold border border-slate-200">Fuera</span>`;
-                    } else {
-                        estadoHTML = `<span class="bg-amber-100 text-amber-700 px-3 py-1.5 rounded-md text-xs font-bold border border-amber-200">En Disputa</span>`;
-                    }
-                }
-
-                const iconoProy = cand.tipoProyeccion === "Tendencia" ? 
-                    `<span title="Proyectado usando Tendencia Reciente (Momentum)" class="text-amber-500 ml-1.5 cursor-help">⚡</span>` : 
-                    `<span title="Proyectado usando modelo Lineal básico" class="text-slate-300 ml-1.5 cursor-help">−</span>`;
-
-                let imagenHTML = '';
-                if (pos <= 3) {
-                    const rutaImg = obtenerRutaImagen(cand.nombre);
-                    if (rutaImg) {
-                        imagenHTML = `<img src="${rutaImg}" alt="${cand.nombre}" class="w-10 h-10 rounded-full object-cover border border-slate-300 shadow-sm mr-4">`;
-                    } else {
-                        imagenHTML = `<div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold border border-slate-300 shadow-sm mr-4">${pos}</div>`;
-                    }
-                }
-
-                // NUEVO: Badge de nuevos votos sumados
-                let deltaHTML = '';
-                if (cand.nuevosVotos > 0) {
-                    deltaHTML = `<div class="text-[10px] text-emerald-500 font-bold mt-1">+${cand.nuevosVotos.toLocaleString('es-PE')}</div>`;
+                if (pos <= 2) estadoHTML = `<span class="bg-emerald-50 text-emerald-700 px-3.5 py-1.5 rounded-lg text-xs font-bold border border-emerald-100 shadow-sm">Clasifica</span>`;
+                else {
+                    if (cand.proyeccion >= (candidatos[1] ? candidatos[1].proyeccion : 0)) estadoHTML = `<span class="bg-purple-50 text-purple-700 px-3.5 py-1.5 rounded-lg text-xs font-bold border border-purple-100">Remontada</span>`;
+                    else if (cand.proyeccion < (candidatos[1] ? candidatos[1].votosActuales : 0)) estadoHTML = `<span class="bg-slate-50 text-slate-400 px-3.5 py-1.5 rounded-lg text-xs font-medium border border-slate-100">Fuera</span>`;
+                    else estadoHTML = `<span class="bg-amber-50 text-amber-700 px-3.5 py-1.5 rounded-lg text-xs font-bold border border-amber-100">Disputa</span>`;
                 }
 
                 tbody.insertAdjacentHTML('beforeend', `
-                    <tr class="hover:bg-slate-50 transition-colors group">
-                        <td class="p-4 font-black text-slate-400 group-hover:text-blue-500 transition-colors text-center">${pos}</td>
+                    <tr class="hover:bg-blue-50/50 transition-colors group">
+                        <td class="p-4 font-black text-slate-400 group-hover:text-blue-600 transition-colors text-center text-base">${pos}</td>
                         <td class="p-4 flex items-center">
-                            ${imagenHTML}
+                            ${pos <= 3 && obtenerRutaImagen(cand.nombre) ? `<img src="${obtenerRutaImagen(cand.nombre)}" class="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm mr-4">` : pos <= 3 ? `<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-black border border-slate-200 mr-4">${pos}</div>` : '<div class="w-14"></div>'}
                             <div>
-                                <div class="font-bold text-slate-800">${cand.nombre}</div>
-                                <div class="text-xs text-slate-500 mt-0.5">${cand.partido}</div>
+                                <div class="font-extrabold text-slate-800 text-base leading-snug">${cand.nombre}</div>
+                                <div class="text-xs text-slate-500">${cand.partido}</div>
                             </div>
                         </td>
                         <td class="p-4 text-right">
-                            <div class="font-mono text-slate-600 text-base">${cand.votosActuales.toLocaleString('es-PE')}</div>
-                            ${deltaHTML}
+                            <div class="font-mono text-slate-700 text-base">${cand.votosActuales.toLocaleString('es-PE')}</div>
+                            ${cand.nuevosVotos > 0 ? `<div class="text-[10px] text-emerald-500 font-bold mt-1 tracking-tight">+${cand.nuevosVotos.toLocaleString('es-PE')} <span class="text-slate-400 font-medium">desde ult. F5</span></div>` : ''}
                         </td>
-                        <td class="p-4 text-right font-mono font-black text-blue-600 bg-blue-50/30">${cand.proyeccion.toLocaleString('es-PE')}${iconoProy}</td>
+                        <td class="p-4 text-right font-mono font-black text-blue-700 bg-blue-50/40 text-base group-hover:bg-blue-100/50 transition-colors">${cand.proyeccion.toLocaleString('es-PE')}${cand.tipoProyeccion === "Tendencia" ? '<span title="Modelo Momentum Activo" class="text-amber-500 ml-1.5 cursor-help">⚡</span>' : '<span title="Modelo Lineal Base" class="text-slate-300 ml-1.5 cursor-help">−</span>'}</td>
                         <td class="p-4 text-center">${estadoHTML}</td>
                     </tr>
                 `);
             });
         }
 
-        // Ejecutar inmediatamente al abrir y luego cada 3 minutos (180,000 milisegundos)
-        window.onload = () => {
-            cargarDatos();
-            setInterval(cargarDatos, 180000); 
-        };
+        // Auto-actualización cada 3 minutos (180,000 ms)
+        window.onload = () => { cargarDatos(); setInterval(cargarDatos, 180000); };
     </script>
 </body>
 </html>
