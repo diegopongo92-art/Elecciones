@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Proyección ONPE 2026 - Segunda Vuelta</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans p-4 md:p-8">
 
@@ -44,7 +43,7 @@
                     </thead>
                     <tbody id="tabla-candidatos" class="text-sm">
                         <tr>
-                            <td colspan="5" class="p-4 text-center text-slate-500">Cargando datos en vivo de la ONPE...</td>
+                            <td colspan="5" class="p-4 text-center text-slate-500">Cargando datos en vivo usando proxy proxy...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -53,13 +52,20 @@
     </div>
 
     <script>
-        // URLs de la ONPE (Nacional)
-        const URL_CANDS = "https://resultadoelectoral.onpe.gob.pe/presentacion-backend/eleccion-presidencial/participantes-ubicacion-geografica-nombre?idEleccion=10&tipoFiltro=eleccion";
-        const URL_RES = "https://resultadoelectoral.onpe.gob.pe/presentacion-backend/resumen-general/totales?idEleccion=10&tipoFiltro=eleccion";
+        // Usamos AllOrigins (un proxy público) para evitar el bloqueo CORS de la ONPE
+        const PROXY_URL = "https://api.allorigins.win/raw?url=";
+        
+        // URLs originales de la ONPE
+        const ONPE_CANDS = "https://resultadoelectoral.onpe.gob.pe/presentacion-backend/eleccion-presidencial/participantes-ubicacion-geografica-nombre?idEleccion=10&tipoFiltro=eleccion";
+        const ONPE_RES = "https://resultadoelectoral.onpe.gob.pe/presentacion-backend/resumen-general/totales?idEleccion=10&tipoFiltro=eleccion";
+
+        // Combinamos el proxy con las URLs de la ONPE
+        const URL_CANDS = PROXY_URL + encodeURIComponent(ONPE_CANDS);
+        const URL_RES = PROXY_URL + encodeURIComponent(ONPE_RES);
 
         async function cargarDatos() {
             try {
-                // Hacemos fetch a las APIs
+                // Hacemos fetch a las APIs a través del proxy
                 const [resCands, resResumen] = await Promise.all([
                     fetch(URL_CANDS).then(res => res.json()),
                     fetch(URL_RES).then(res => res.json())
@@ -72,7 +78,7 @@
             } catch (error) {
                 console.error("Error cargando datos:", error);
                 document.getElementById('tabla-candidatos').innerHTML = `
-                    <tr><td colspan="5" class="p-4 text-center text-red-500">Error al conectar con los servidores de la ONPE. Es posible que la API esté restringida por CORS.</td></tr>
+                    <tr><td colspan="5" class="p-4 text-center text-red-500">Hubo un problema al cargar los datos. El proxy público podría estar saturado. Intenta recargar la página en unos segundos.</td></tr>
                 `;
             }
         }
@@ -123,7 +129,7 @@
                 const pos = index + 1;
                 let estadoHTML = '';
 
-                // Lógica de estado (réplica de tu código Python)
+                // Lógica de estado
                 if (pctAvance === 0) {
                     estadoHTML = `<span class="text-slate-400">Esperando conteo...</span>`;
                 } else if (pos === 1) {
