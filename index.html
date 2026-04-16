@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proyección ONPE 2026 - Segunda Vuelta</title>
+    <title>Proyección ONPE 2026 - Vercel Edition</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans p-4 md:p-8">
@@ -11,20 +11,20 @@
     <div class="max-w-5xl mx-auto">
         <header class="mb-8 text-center md:text-left">
             <h1 class="text-3xl md:text-4xl font-bold text-blue-900">Proyección Presidencial 2026</h1>
-            <p class="text-slate-500 mt-2">Probabilidades y proyección de Segunda Vuelta (Datos Nacionales)</p>
+            <p class="text-slate-500 mt-2">Datos en tiempo real vía Vercel Proxy</p>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Actas Contabilizadas</h3>
+                <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Avance de Actas</h3>
                 <p id="avance-txt" class="text-3xl font-bold text-blue-600 mt-2">--%</p>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Votos Válidos (Actual)</h3>
+                <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Votos Válidos</h3>
                 <p id="votos-actuales-txt" class="text-3xl font-bold text-slate-800 mt-2">--</p>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-                <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Votos Restantes (Estimado)</h3>
+                <h3 class="text-sm font-semibold text-slate-500 uppercase tracking-wider">Votos por Contar (Est.)</h3>
                 <p id="votos-restantes-txt" class="text-3xl font-bold text-orange-600 mt-2">--</p>
             </div>
         </div>
@@ -43,7 +43,7 @@
                     </thead>
                     <tbody id="tabla-candidatos" class="text-sm">
                         <tr>
-                            <td colspan="5" class="p-4 text-center text-slate-500">Cargando datos en vivo usando proxy proxy...</td>
+                            <td colspan="5" class="p-4 text-center text-slate-500">Conectando con el servidor de Vercel...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -52,33 +52,22 @@
     </div>
 
     <script>
-        // Usamos AllOrigins (un proxy público) para evitar el bloqueo CORS de la ONPE
-        const PROXY_URL = "https://api.allorigins.win/raw?url=";
-        
-        // URLs originales de la ONPE
-        const ONPE_CANDS = "https://resultadoelectoral.onpe.gob.pe/presentacion-backend/eleccion-presidencial/participantes-ubicacion-geografica-nombre?idEleccion=10&tipoFiltro=eleccion";
-        const ONPE_RES = "https://resultadoelectoral.onpe.gob.pe/presentacion-backend/resumen-general/totales?idEleccion=10&tipoFiltro=eleccion";
-
-        // Combinamos el proxy con las URLs de la ONPE
-        const URL_CANDS = PROXY_URL + encodeURIComponent(ONPE_CANDS);
-        const URL_RES = PROXY_URL + encodeURIComponent(ONPE_RES);
+        // Importante: Estas rutas ahora apuntan a tu propio servidor de Vercel
+        const URL_CANDS = "/api/onpe/candidatos";
+        const URL_RES = "/api/onpe/resumen";
 
         async function cargarDatos() {
             try {
-                // Hacemos fetch a las APIs a través del proxy
                 const [resCands, resResumen] = await Promise.all([
                     fetch(URL_CANDS).then(res => res.json()),
                     fetch(URL_RES).then(res => res.json())
                 ]);
 
-                const cands = resCands.data || [];
-                const resumen = resResumen.data || {};
-
-                procesarDatos(cands, resumen);
+                procesarDatos(resCands.data || [], resResumen.data || {});
             } catch (error) {
-                console.error("Error cargando datos:", error);
+                console.error("Error:", error);
                 document.getElementById('tabla-candidatos').innerHTML = `
-                    <tr><td colspan="5" class="p-4 text-center text-red-500">Hubo un problema al cargar los datos. El proxy público podría estar saturado. Intenta recargar la página en unos segundos.</td></tr>
+                    <tr><td colspan="5" class="p-4 text-center text-red-500">Error al obtener datos. Asegúrate de que el proyecto esté desplegado en Vercel.</td></tr>
                 `;
             }
         }
@@ -87,73 +76,37 @@
             const pctAvance = resumen.actasContabilizadas || 0;
             let totalVotosActuales = 0;
             
-            // Limpiar candidatos vacíos y calcular total actual
             let candidatos = cands.filter(c => c.nombreCandidato).map(c => {
                 const votos = c.totalVotosValidos || 0;
                 totalVotosActuales += votos;
-                // Proyección lineal simple
                 const proyeccion = (pctAvance > 0) ? Math.round(votos / (pctAvance / 100)) : 0;
-                
-                return {
-                    nombre: c.nombreCandidato,
-                    partido: c.nombreAgrupacionPolitica,
-                    votosActuales: votos,
-                    proyeccion: proyeccion
-                };
+                return { nombre: c.nombreCandidato, partido: c.nombreAgrupacionPolitica, votosActuales: votos, proyeccion: proyeccion };
             });
 
-            // Ordenar por votos actuales descendente
             candidatos.sort((a, b) => b.votosActuales - a.votosActuales);
 
-            // Cálculos de 2da vuelta
-            let votosRestantes = 0;
-            if (pctAvance > 0 && pctAvance < 100) {
-                votosRestantes = Math.round(totalVotosActuales * (100 - pctAvance) / pctAvance);
-            }
-
-            // Top 3 actual para comparar
-            const v1 = candidatos.length > 0 ? candidatos[0].votosActuales : 0;
+            let votosRestantes = (pctAvance > 0 && pctAvance < 100) ? Math.round(totalVotosActuales * (100 - pctAvance) / pctAvance) : 0;
             const v2 = candidatos.length > 1 ? candidatos[1].votosActuales : 0;
             const v3 = candidatos.length > 2 ? candidatos[2].votosActuales : 0;
 
-            // Actualizar tarjetas en el HTML
             document.getElementById('avance-txt').innerText = `${pctAvance.toFixed(2)}%`;
             document.getElementById('votos-actuales-txt').innerText = totalVotosActuales.toLocaleString('es-PE');
             document.getElementById('votos-restantes-txt').innerText = votosRestantes.toLocaleString('es-PE');
 
-            // Renderizar la tabla
             const tbody = document.getElementById('tabla-candidatos');
             tbody.innerHTML = '';
 
             candidatos.forEach((cand, index) => {
                 const pos = index + 1;
                 let estadoHTML = '';
-
-                // Lógica de estado
-                if (pctAvance === 0) {
-                    estadoHTML = `<span class="text-slate-400">Esperando conteo...</span>`;
-                } else if (pos === 1) {
-                    if ((cand.votosActuales - v2) > votosRestantes) {
-                        estadoHTML = `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold">Asegurado 2da Vuelta</span>`;
-                    } else {
-                        estadoHTML = `<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold">Peleando 2da Vuelta</span>`;
-                    }
-                } else if (pos === 2) {
-                    if ((cand.votosActuales - v3) > votosRestantes) {
-                        estadoHTML = `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold">Asegurado 2da Vuelta</span>`;
-                    } else {
-                        estadoHTML = `<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold">Peleando 2da Vuelta</span>`;
-                    }
+                if (pos <= 2) {
+                    estadoHTML = `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold">Zona de Clasificación</span>`;
                 } else {
-                    if (cand.proyeccion < v2) {
-                        estadoHTML = `<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold">Eliminado Matemáticamente</span>`;
-                    } else {
-                        estadoHTML = `<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold">Peleando 2da Vuelta</span>`;
-                    }
+                    estadoHTML = (cand.proyeccion < v2) ? `<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold">Eliminado</span>` : `<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold">En disputa</span>`;
                 }
 
-                const fila = `
-                    <tr class="border-b last:border-0 hover:bg-slate-50 transition-colors">
+                tbody.insertAdjacentHTML('beforeend', `
+                    <tr class="border-b hover:bg-slate-50 transition-colors">
                         <td class="p-4 font-bold text-slate-500">${pos}</td>
                         <td class="p-4">
                             <div class="font-semibold text-blue-900">${cand.nombre}</div>
@@ -163,12 +116,9 @@
                         <td class="p-4 text-right font-mono font-bold text-blue-700">${cand.proyeccion.toLocaleString('es-PE')}</td>
                         <td class="p-4">${estadoHTML}</td>
                     </tr>
-                `;
-                tbody.insertAdjacentHTML('beforeend', fila);
+                `);
             });
         }
-
-        // Iniciar la carga al abrir la página
         window.onload = cargarDatos;
     </script>
 </body>
