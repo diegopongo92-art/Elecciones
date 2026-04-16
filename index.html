@@ -9,41 +9,55 @@
     <style>
         html { scroll-behavior: smooth; }
         .glass-header { background: rgba(15, 23, 42, 0.98); backdrop-filter: blur(10px); }
-        /* Estilo sutil para tensión profesional (Dorado) */
+        .tab-active { background-color: #3b82f6 !important; color: white !important; border-color: #3b82f6 !important; }
         .tension-electoral { border-color: #f59e0b !important; background-color: #fffbeb; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans pb-12">
 
-    <header class="glass-header text-white py-6 shadow-lg mb-8 sticky top-0 z-50">
+    <header class="glass-header text-white py-6 shadow-lg sticky top-0 z-50">
         <div class="max-w-6xl mx-auto px-4 md:px-8 flex flex-col md:flex-row justify-between items-center">
             <div class="text-center md:text-left">
-                <h1 class="text-2xl md:text-3xl font-black tracking-tight">Proyección Presidencial <span class="text-blue-400">2026</span></h1>
+                <h1 class="text-2xl md:text-3xl font-black tracking-tight">Escrutinio General <span class="text-blue-400">2026</span></h1>
                 <p class="text-xs text-blue-300 font-medium tracking-wider mt-1.5 uppercase">Analítica & Desarrollo por Diego Pongo</p>
-                <p class="text-slate-400 text-xs mt-1">Monitor analítico en tiempo real | Segunda Vuelta</p>
             </div>
             <div class="mt-5 md:mt-0 flex flex-col items-center md:items-end">
-                <div class="flex items-center space-x-3 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700 shadow-inner">
-                    <span class="relative flex h-3 w-3" title="Auto-actualización cada 3 min activada">
+                <div class="flex items-center space-x-3 bg-slate-800 px-4 py-2 rounded-xl border border-slate-700">
+                    <span class="relative flex h-3 w-3">
                       <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                       <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                     </span>
-                    <span class="text-sm font-semibold text-slate-200 tracking-wide">Radar ONPE Activo</span>
+                    <span class="text-sm font-semibold text-slate-200">Radar ONPE Activo</span>
                 </div>
-                <div id="hora-actualizacion" class="text-xs text-slate-400 mt-2.5 font-mono">
-                    Sincronizando con ONPE...
-                </div>
+                <div id="hora-actualizacion" class="text-xs text-slate-400 mt-2.5 font-mono italic">Sincronizando...</div>
             </div>
         </div>
     </header>
+
+    <div class="max-w-6xl mx-auto px-4 md:px-8 mt-8">
+        <div class="flex flex-wrap gap-2 md:gap-3 justify-center md:justify-start mb-8">
+            <button onclick="cambiarEleccion('presidencial')" id="btn-presidencial" class="tab-active px-5 py-2.5 rounded-xl border-2 border-slate-200 bg-white text-slate-600 font-bold text-sm transition-all shadow-sm hover:border-blue-400">
+                🗳️ Presidencial
+            </button>
+            <button onclick="cambiarEleccion('senado_unico')" id="btn-senado_unico" class="px-5 py-2.5 rounded-xl border-2 border-slate-200 bg-white text-slate-600 font-bold text-sm transition-all shadow-sm hover:border-blue-400">
+                🏛️ Senadores (D. Único Nacional)
+            </button>
+            <button onclick="cambiarEleccion('senado_multiple')" id="btn-senado_multiple" class="px-5 py-2.5 rounded-xl border-2 border-slate-200 bg-white text-slate-600 font-bold text-sm transition-all shadow-sm hover:border-blue-400">
+                🏛️ Senadores (D. Múltiple)
+            </button>
+            <button onclick="cambiarEleccion('diputados')" id="btn-diputados" class="px-5 py-2.5 rounded-xl border-2 border-slate-200 bg-white text-slate-600 font-bold text-sm transition-all shadow-sm hover:border-blue-400">
+                👥 Cámara de Diputados
+            </button>
+        </div>
+    </div>
 
     <div class="max-w-6xl mx-auto px-4 md:px-8">
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 border-l-4 border-l-blue-500">
-                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Actas Contabilizadas</h3>
+                <h3 id="titulo-avance" class="text-xs font-bold text-slate-400 uppercase tracking-widest">Actas Contabilizadas</h3>
                 <p id="avance-txt" class="text-4xl font-black text-slate-800 mt-2">--%</p>
-                <div class="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden border border-slate-200 shadow-inner">
+                <div class="w-full bg-slate-100 rounded-full h-2 mt-3 overflow-hidden border border-slate-200">
                     <div id="avance-bar" class="bg-blue-500 h-2 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
                 </div>
             </div>
@@ -57,22 +71,22 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div id="seccion-analisis" class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <div id="tarjeta-disputa" class="lg:col-span-2 bg-white border-2 border-slate-200 rounded-2xl p-7 shadow-sm relative overflow-hidden transition-all duration-500">
                 <div class="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
-                    <h2 class="text-lg font-bold text-slate-800 flex items-center">
-                        <span id="disputa-icono" class="bg-slate-100 text-slate-500 p-2 rounded-lg mr-3 transition-colors">⚔️</span>
-                        Foco Electoral: La pelea por el 2do Lugar
+                    <h2 id="titulo-disputa" class="text-lg font-bold text-slate-800 flex items-center">
+                        <span id="disputa-icono" class="bg-slate-100 text-slate-500 p-2 rounded-lg mr-3">⚔️</span>
+                        Foco Electoral: Disputa Presidencial
                     </h2>
-                    <span id="alerta-sorpasso-badge" class="hidden bg-amber-100 text-amber-800 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-amber-200 shadow-sm">FINAL DE FOTOGRAFÍA</span>
+                    <span id="alerta-sorpasso-badge" class="hidden bg-amber-100 text-amber-800 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-amber-200 shadow-sm">DISPUTA POR SEGUNDA VUELTA</span>
                 </div>
                 <div id="disputa-container" class="text-slate-700 min-h-[100px] flex items-center justify-center">
-                    <p class="text-sm text-slate-500 animate-pulse">Analizando tendencia recuente...</p>
+                    <p class="text-sm text-slate-500">Selecciona una elección para analizar la brecha...</p>
                 </div>
             </div>
 
             <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col justify-center">
-                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Distribución Top 3</h2>
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Distribución de Poder</h2>
                 <div class="relative h-40 w-full">
                     <canvas id="grafico-top"></canvas>
                 </div>
@@ -82,17 +96,16 @@
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-12">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
                 <div class="flex items-center space-x-2">
-                    <h2 class="font-bold text-slate-800 text-lg">Tabla de Posiciones y Proyecciones</h2>
+                    <h2 id="titulo-tabla" class="font-bold text-slate-800 text-lg">Resultados Presidenciales</h2>
                     <span id="actualizando-spinner" class="hidden text-xs bg-blue-100 text-blue-600 px-2.5 py-1 rounded-full animate-pulse font-semibold">Actualizando...</span>
                 </div>
-                <a href="#metodologia" class="text-xs font-semibold text-blue-600 hover:text-blue-800 underline">Ver metodología</a>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-white text-slate-400 text-xs uppercase tracking-wider border-b-2 border-slate-100 relative">
+                        <tr class="bg-white text-slate-400 text-xs uppercase tracking-wider border-b-2 border-slate-100">
                             <th class="p-4 font-bold w-16 text-center">Pos</th>
-                            <th class="p-4 font-bold">Candidato</th>
+                            <th id="th-nombre" class="p-4 font-bold">Candidato / Partido</th>
                             <th class="p-4 font-bold text-right">Votos Contados</th>
                             <th class="p-4 font-bold text-right bg-blue-50/50">Proyección Final*</th>
                             <th class="p-4 font-bold text-center">Estado</th>
@@ -100,273 +113,225 @@
                     </thead>
                     <tbody id="tabla-candidatos" class="text-sm divide-y divide-slate-100">
                         <tr>
-                            <td colspan="5" class="p-12 text-center text-slate-500 font-medium">Sincronizando datos electorales en vivo...</td>
+                            <td colspan="5" class="p-12 text-center text-slate-500 font-medium animate-pulse">Cargando datos electorales...</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
         
-        <section id="metodologia" class="bg-slate-900 text-slate-300 rounded-2xl p-8 shadow-xl border border-slate-800">
-            <h2 class="text-xl font-bold text-white mb-5 border-b border-slate-700 pb-3 flex items-center">
-                <span class="text-blue-400 mr-2">📊</span>
-                Metodología de Proyección Diego Pongo Analítica
-            </h2>
-            <p class="mb-7 text-sm leading-relaxed text-slate-400">Este dashboard utiliza un modelo dinámico propio desarrollado por Diego Pongo, el cual procesa los datos públicos de la ONPE en tiempo real para proyectar resultados al 100% de actas escrutadas. No representa un resultado oficial final.</p>
-            
-            <div class="grid md:grid-cols-2 gap-8 font-mono text-xs">
-                <div class="bg-black/30 p-5 rounded-xl border border-slate-700 hover:border-slate-600 transition-colors">
-                    <div class="flex items-center mb-3.5">
-                        <span class="bg-slate-700 text-slate-100 text-[10px] font-black px-2.5 py-1 rounded-full mr-2.5">MODELO A</span>
-                        <h3 class="text-white font-semibold text-sm">Proyección Lineal Directa</h3>
-                    </div>
-                    <p class="text-slate-400 mb-3 text-justify">Extrapolación que asume que la proporción de votos restantes será idéntica a la actual. Utilizado como línea base.</p>
-                </div>
-
-                <div class="bg-black/30 p-5 rounded-xl border border-blue-900/50 hover:border-blue-800 transition-colors">
-                    <div class="flex items-center mb-3.5">
-                        <span class="bg-blue-600 text-white text-[10px] font-black px-2.5 py-1 rounded-full mr-2.5 flex items-center">⚡ MODELO B</span>
-                        <h3 class="text-blue-100 font-semibold text-sm">Momentum (Tendencia Reciente)</h3>
-                    </div>
-                    <p class="text-slate-400 mb-3 text-justify">Mide la velocidad de llegada de votos entre actualizaciones para ajustar la curva final. Corrige sesgos geográficos o de voto rural/extranjero.</p>
-                </div>
-            </div>
-            <div class="mt-8 text-center text-xs text-slate-600 border-t border-slate-800 pt-4">
-                Dashboard desarrollado independientemente usando datos públicos de acceso abierto. 2026.
-            </div>
-        </section>
-
     </div>
 
     <script>
-        // Configuración Proxy Vercel
-        const URL_CANDS = "/api/onpe/candidatos";
-        const URL_RES = "/api/onpe/resumen";
+        // ESTADO GLOBAL
+        let eleccionActual = 'presidencial';
         let graficoDonut = null;
 
-        // Mapeo Inteligente de Imágenes
-        function obtenerRutaImagen(nombreCandidato) {
-            const nombreUpper = nombreCandidato.toUpperCase();
-            if (nombreUpper.includes("KEIKO") || nombreUpper.includes("FUJIMORI")) return "Keiko.png";
-            if (nombreUpper.includes("RAFAEL") || nombreUpper.includes("ALIAGA") || nombreUpper.includes("LÓPEZ")) return "Rafael.png";
-            if (nombreUpper.includes("SANCHEZ") || nombreUpper.includes("SÁNCHEZ")) return "Sanchez.png";
-            return null; 
+        // Configuración de URLs por tipo de elección
+        const CONFIG = {
+            presidencial: {
+                cands: "/api/onpe/candidatos",
+                res: "/api/onpe/resumen",
+                titulo: "Resultados Presidenciales",
+                disputa: "Disputa Presidencial"
+            },
+            senado_unico: {
+                cands: "/api/onpe/senado_unico/candidatos", 
+                res: "/api/onpe/senado_unico/resumen",     
+                titulo: "Elección Cámara de Senadores - Distrito Electoral Único (Nacional)",
+                disputa: "Competencia por Escaños Nacionales"
+            },
+            senado_multiple: {
+                cands: "/api/onpe/senado_multiple/candidatos", 
+                res: "/api/onpe/senado_multiple/resumen",     
+                titulo: "Elección Cámara de Senadores - Distrito Electoral Múltiple",
+                disputa: "Competencia por Escaños Regionales"
+            },
+            diputados: {
+                cands: "/api/onpe/diputados/candidatos", 
+                res: "/api/onpe/diputados/resumen",      
+                titulo: "Elección Cámara de Diputados",
+                disputa: "Distribución de Bancadas"
+            }
+        };
+
+        function cambiarEleccion(tipo) {
+            eleccionActual = tipo;
+            
+            // Actualizar Botones UI
+            ['presidencial', 'senado_unico', 'senado_multiple', 'diputados'].forEach(id => {
+                const btn = document.getElementById(`btn-${id}`);
+                if(id === tipo) btn.classList.add('tab-active');
+                else btn.classList.remove('tab-active');
+            });
+
+            // Actualizar Títulos UI con la nomenclatura oficial
+            document.getElementById('titulo-tabla').innerText = CONFIG[tipo].titulo;
+            document.getElementById('titulo-disputa').innerText = `Foco Electoral: ${CONFIG[tipo].disputa}`;
+
+            if (tipo !== 'presidencial') {
+                document.getElementById('disputa-container').innerHTML = `<p class="text-sm text-slate-400">Análisis de distribución parlamentaria en proceso...</p>`;
+                document.getElementById('tarjeta-disputa').classList.remove('tension-electoral');
+                document.getElementById('alerta-sorpasso-badge').classList.add('hidden');
+            }
+
+            cargarDatos();
         }
 
         async function cargarDatos() {
             document.getElementById('actualizando-spinner').classList.remove('hidden');
+            const urls = CONFIG[eleccionActual];
+            
             try {
                 const [resCands, resResumen] = await Promise.all([
-                    fetch(URL_CANDS).then(res => res.json()),
-                    fetch(URL_RES).then(res => res.json())
+                    fetch(urls.cands).then(res => res.json()),
+                    fetch(urls.res).then(res => res.json())
                 ]);
                 procesarDatos(resCands.data || [], resResumen.data || {});
             } catch (error) {
-                console.error("Error consultando la API:", error);
+                console.warn("API de " + eleccionActual + " no disponible aún.");
+                document.getElementById('tabla-candidatos').innerHTML = `<tr><td colspan="5" class="p-12 text-center text-slate-400 italic">Los datos para <b>${CONFIG[eleccionActual].titulo}</b> estarán disponibles conforme avance el conteo oficial de la ONPE.</td></tr>`;
+                
+                // Limpiar resumen si no hay datos
+                document.getElementById('avance-txt').innerText = `--%`;
+                document.getElementById('avance-bar').style.width = `0%`;
+                document.getElementById('votos-actuales-txt').innerText = `--`;
+                document.getElementById('votos-restantes-txt').innerText = `--`;
+                if(graficoDonut) { graficoDonut.data.datasets[0].data = []; graficoDonut.update(); }
             } finally {
                 document.getElementById('actualizando-spinner').classList.add('hidden');
             }
         }
 
-        function renderizarGrafico(topCandidatos) {
+        function obtenerRutaImagen(nombre) {
+            const n = nombre.toUpperCase();
+            if (n.includes("KEIKO")) return "Keiko.png";
+            if (n.includes("RAFAEL") || n.includes("ALIAGA")) return "Rafael.png";
+            if (n.includes("SANCHEZ")) return "Sanchez.png";
+            return null; 
+        }
+
+        function renderizarGrafico(candidatos) {
             const ctx = document.getElementById('grafico-top').getContext('2d');
-            const labels = topCandidatos.map(c => c.nombre.split(' ')[0]); 
-            const data = topCandidatos.map(c => c.votosActuales);
-            const colores = ['#3b82f6', '#8b5cf6', '#f59e0b']; // Azul, Violeta, Dorado
+            const top3 = candidatos.slice(0, 3);
+            const labels = top3.map(c => c.nombre.split(' ')[0]); 
+            const data = top3.map(c => c.votosActuales);
+            const colores = ['#3b82f6', '#8b5cf6', '#f59e0b'];
 
             if (graficoDonut) {
                 graficoDonut.data.datasets[0].data = data;
+                graficoDonut.data.labels = labels;
                 graficoDonut.update();
             } else {
-                Chart.defaults.color = '#94a3b8'; // Slate 400
                 graficoDonut = new Chart(ctx, {
                     type: 'doughnut',
                     data: {
                         labels: labels,
-                        datasets: [{
-                            data: data,
-                            backgroundColor: colores,
-                            borderWidth: 2,
-                            borderColor: '#ffffff'
-                        }]
+                        datasets: [{ data: data, backgroundColor: colores, borderWidth: 2, borderColor: '#ffffff' }]
                     },
                     options: {
                         responsive: true,
                         maintainAspectRatio: false,
-                        plugins: {
-                            legend: { position: 'bottom', labels: { boxWidth: 10, padding: 15, font: { size: 11, family: 'sans-serif', weight: '500' } } },
-                            tooltip: { callbacks: { label: function(context) { return ` ${context.label}: ${context.raw.toLocaleString('es-PE')} votos`; } } }
-                        },
-                        cutout: '72%'
+                        plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } },
+                        cutout: '70%'
                     }
                 });
             }
         }
 
         function procesarDatos(cands, resumen) {
-            // LÓGICA DE HORA DEL SERVIDOR ONPE (Timestamp fix)
-            let fechaRaw = resumen.fechaAct || resumen.fechaActualizacion || resumen.fecha || "";
-            const horaElemento = document.getElementById('hora-actualizacion');
-            
-            if (fechaRaw !== "") {
-                if (!isNaN(fechaRaw) && String(fechaRaw).length >= 10) {
-                    const fechaTraducida = new Date(parseInt(fechaRaw));
-                    // Formato: Hora ONPE: 14:30:00 (16/04/2026)
-                    horaElemento.innerText = `Hora ONPE: ${fechaTraducida.toLocaleTimeString('es-PE')} (${fechaTraducida.toLocaleDateString('es-PE')})`;
+            if (!cands || cands.length === 0) return;
+
+            // HORA ONPE
+            let f = resumen.fechaAct || resumen.fechaActualizacion || resumen.fecha || "";
+            if (f !== "") {
+                if (!isNaN(f) && String(f).length >= 10) {
+                    const d = new Date(parseInt(f));
+                    document.getElementById('hora-actualizacion').innerText = `Hora ONPE: ${d.toLocaleTimeString('es-PE')} (${d.toLocaleDateString('es-PE')})`;
                 } else {
-                    horaElemento.innerText = `Corte oficial ONPE: ${fechaRaw}`;
+                    document.getElementById('hora-actualizacion').innerText = `Corte oficial: ${f}`;
                 }
-                horaElemento.classList.replace('text-slate-400', 'text-green-400');
             }
 
-            // PROCESAMIENTO DE DATOS MATEMÁTICOS
-            const pctAvance = parseFloat(resumen.actasContabilizadas) || 0;
-            let totalVotosActuales = 0;
+            const pct = parseFloat(resumen.actasContabilizadas) || 0;
+            let total = 0;
             
-            let historial = JSON.parse(localStorage.getItem('onpe_memoria_votos_dp')) || { pct: 0, cands: {} };
-            let usarTendenciaAvanzada = false;
-            let deltaPct = pctAvance - historial.pct;
-
-            if (deltaPct > 0.05 && deltaPct < 100) usarTendenciaAvanzada = true;
-
-            let candidatos = cands.filter(c => c.nombreCandidato).map(c => {
+            // Lógica de Proyección
+            let candidatos = cands.filter(c => c.nombreCandidato || c.nombreAgrupacionPolitica).map(c => {
                 const votos = parseInt(c.totalVotosValidos) || 0;
-                const nombre = c.nombreCandidato;
-                totalVotosActuales += votos;
-                
-                let proyeccion = 0;
-                let tipoProyeccion = "Lineal";
-                let nuevosVotos = 0;
-                if (historial.cands[nombre] !== undefined) nuevosVotos = votos - historial.cands[nombre];
-
-                if (usarTendenciaAvanzada && historial.cands[nombre] !== undefined) {
-                    const velocidadVotosPorPorcentaje = nuevosVotos / deltaPct; 
-                    const porcentajeFaltante = 100 - pctAvance;
-                    proyeccion = Math.round(votos + (velocidadVotosPorPorcentaje * porcentajeFaltante));
-                    tipoProyeccion = "Tendencia";
-                    if (proyeccion < votos) proyeccion = Math.round(votos / (pctAvance / 100));
-                } else {
-                    proyeccion = (pctAvance > 0) ? Math.round(votos / (pctAvance / 100)) : 0;
-                }
-                return { nombre, partido: c.nombreAgrupacionPolitica, votosActuales: votos, proyeccion, tipoProyeccion, nuevosVotos };
+                total += votos;
+                const nombre = c.nombreCandidato || c.nombreAgrupacionPolitica;
+                const proy = (pct > 0) ? Math.round(votos / (pct / 100)) : 0;
+                return { nombre, partido: c.nombreAgrupacionPolitica || "Partido", votosActuales: votos, proyeccion: proy };
             });
-
-            // Guardar en memoria (con key propia DP)
-            localStorage.setItem('onpe_memoria_votos_dp', JSON.stringify({ pct: pctAvance, cands: Object.fromEntries(candidatos.map(c => [c.nombre, c.votosActuales])) }));
 
             candidatos.sort((a, b) => b.votosActuales - a.votosActuales);
 
-            // ACTUALIZAR TARJETAS SUPERIORES
-            let votosRestantes = (pctAvance > 0 && pctAvance < 100) ? Math.round(totalVotosActuales * (100 - pctAvance) / pctAvance) : 0;
-            document.getElementById('avance-txt').innerText = `${pctAvance.toFixed(2)}%`;
-            document.getElementById('avance-bar').style.width = `${pctAvance}%`;
-            document.getElementById('votos-actuales-txt').innerText = totalVotosActuales.toLocaleString('es-PE');
-            document.getElementById('votos-restantes-txt').innerText = votosRestantes.toLocaleString('es-PE');
+            // UI Global
+            document.getElementById('avance-txt').innerText = `${pct.toFixed(2)}%`;
+            document.getElementById('avance-bar').style.width = `${pct}%`;
+            document.getElementById('votos-actuales-txt').innerText = total.toLocaleString('es-PE');
+            let rest = (pct > 0 && pct < 100) ? Math.round(total * (100 - pct) / pct) : 0;
+            document.getElementById('votos-restantes-txt').innerText = rest.toLocaleString('es-PE');
 
-            // --- RENDERIZAR GRÁFICO ---
-            if(candidatos.length >= 3) renderizarGrafico(candidatos.slice(0, 3));
+            renderizarGrafico(candidatos);
 
-            // --- LÓGICA DE DISPUTA (Estética Profesional Sin Parpadeos) ---
-            if (candidatos.length >= 3) {
+            // LÓGICA DE DISPUTA (SÓLO PRESIDENCIAL)
+            if (eleccionActual === 'presidencial' && candidatos.length >= 3) {
                 const cand2 = candidatos[1];
                 const cand3 = candidatos[2];
-                const diferenciaActual = cand2.votosActuales - cand3.votosActuales;
-                const diffAnterior = localStorage.getItem('onpe_diff_2_3_dp');
-                let tendenciaHTML = "";
+                const diff = cand2.votosActuales - cand3.votosActuales;
 
-                if (diffAnterior !== null && diffAnterior !== diferenciaActual.toString()) {
-                    const cambio = diferenciaActual - parseInt(diffAnterior);
-                    if (cambio > 0) tendenciaHTML = `<span class="text-emerald-600 font-semibold bg-emerald-50 px-3 py-1 rounded-full text-xs shadow-sm border border-emerald-100">▲ Brecha ampliada en ${Math.abs(cambio).toLocaleString('es-PE')}</span>`;
-                    else if (cambio < 0) tendenciaHTML = `<span class="text-orange-600 font-semibold bg-orange-50 px-3 py-1 rounded-full text-xs shadow-sm border border-orange-100">▼ Brecha reducida en ${Math.abs(cambio).toLocaleString('es-PE')}</span>`;
+                const tarjeta = document.getElementById('tarjeta-disputa');
+                const badge = document.getElementById('alerta-sorpasso-badge');
+                if (diff < 15000) {
+                    tarjeta.classList.add('tension-electoral');
+                    badge.classList.remove('hidden');
                 } else {
-                    tendenciaHTML = `<span class="text-slate-400 text-xs">Esperando tendencia en próxima actualización...</span>`;
-                }
-                localStorage.setItem('onpe_diff_2_3_dp', diferenciaActual.toString());
-
-                // NUEVO: Tensión Estética Profesional (Si diff < 15,000)
-                const tarjetaDisputa = document.getElementById('tarjeta-disputa');
-                const badgeSorpasso = document.getElementById('alerta-sorpasso-badge');
-                const iconoDisputa = document.getElementById('disputa-icono');
-                if (diferenciaActual < 15000) {
-                    tarjetaDisputa.classList.add('tension-electoral');
-                    iconoDisputa.classList.replace('text-slate-500', 'text-amber-600');
-                    iconoDisputa.classList.replace('bg-slate-100', 'bg-amber-100');
-                    badgeSorpasso.classList.remove('hidden');
-                } else {
-                    tarjetaDisputa.classList.remove('tension-electoral');
-                    iconoDisputa.classList.replace('text-amber-600', 'text-slate-500');
-                    iconoDisputa.classList.replace('bg-amber-100', 'bg-slate-100');
-                    badgeSorpasso.classList.add('hidden');
+                    tarjeta.classList.remove('tension-electoral');
+                    badge.classList.add('hidden');
                 }
 
                 document.getElementById('disputa-container').innerHTML = `
-                    <div class="w-full">
-                        <div class="flex flex-col md:flex-row items-center justify-between mb-5">
-                            <div class="text-center md:text-left flex-1 flex flex-col md:flex-row items-center">
-                                ${obtenerRutaImagen(cand2.nombre) ? `<img src="${obtenerRutaImagen(cand2.nombre)}" class="w-16 h-16 rounded-full object-cover border-4 border-white shadow-md mb-3 md:mb-0 md:mr-4">` : ''}
-                                <div>
-                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">2do Lugar</div>
-                                    <div class="text-xl font-extrabold text-slate-900 leading-tight">${cand2.nombre}</div>
-                                    <div class="text-xl font-mono text-slate-700 mt-1">${cand2.votosActuales.toLocaleString('es-PE')}</div>
-                                </div>
-                            </div>
-                            <div class="flex flex-col items-center justify-center flex-1 my-5 md:my-0">
-                                <div class="text-xs font-bold text-slate-400 uppercase mb-2">Diferencia</div>
-                                <div class="bg-slate-800 text-white font-mono text-3xl font-black px-7 py-2.5 rounded-2xl shadow-inner border border-slate-700">
-                                    ${diferenciaActual.toLocaleString('es-PE')}
-                                </div>
-                            </div>
-                            <div class="text-center md:text-right flex-1 flex flex-col md:flex-row-reverse items-center">
-                                ${obtenerRutaImagen(cand3.nombre) ? `<img src="${obtenerRutaImagen(cand3.nombre)}" class="w-16 h-16 rounded-full object-cover border-4 border-white shadow-md mb-3 md:mb-0 md:ml-4">` : ''}
-                                <div>
-                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">3er Lugar</div>
-                                    <div class="text-xl font-extrabold text-slate-900 leading-tight">${cand3.nombre}</div>
-                                    <div class="text-xl font-mono text-slate-700 mt-1">${cand3.votosActuales.toLocaleString('es-PE')}</div>
-                                </div>
-                            </div>
+                    <div class="w-full flex flex-col md:flex-row items-center justify-between">
+                        <div class="flex flex-col items-center">
+                            ${obtenerRutaImagen(cand2.nombre) ? `<img src="${obtenerRutaImagen(cand2.nombre)}" class="w-14 h-14 rounded-full border-2 border-white shadow-md mb-2">` : ''}
+                            <span class="text-sm font-bold">${cand2.nombre}</span>
                         </div>
-                        <div class="text-center border-t border-slate-100 pt-4 flex justify-center items-center min-h-[40px]">
-                            ${tendenciaHTML}
+                        <div class="my-4 md:my-0 text-center">
+                            <div class="text-[10px] text-slate-400 uppercase font-black">Diferencia</div>
+                            <div class="bg-slate-800 text-white px-5 py-1.5 rounded-xl font-mono text-xl font-bold">${diff.toLocaleString('es-PE')}</div>
+                        </div>
+                        <div class="flex flex-col items-center">
+                            ${obtenerRutaImagen(cand3.nombre) ? `<img src="${obtenerRutaImagen(cand3.nombre)}" class="w-14 h-14 rounded-full border-2 border-white shadow-md mb-2">` : ''}
+                            <span class="text-sm font-bold">${cand3.nombre}</span>
                         </div>
                     </div>
                 `;
             }
 
-            // --- RENDERIZAR TABLA PROFESIONAL ---
+            // Render Tabla
             const tbody = document.getElementById('tabla-candidatos');
             tbody.innerHTML = '';
-            candidatos.forEach((cand, index) => {
-                const pos = index + 1;
-                let estadoHTML = '';
-                if (pos <= 2) estadoHTML = `<span class="bg-emerald-50 text-emerald-700 px-3.5 py-1.5 rounded-lg text-xs font-bold border border-emerald-100 shadow-sm">Clasifica</span>`;
-                else {
-                    if (cand.proyeccion >= (candidatos[1] ? candidatos[1].proyeccion : 0)) estadoHTML = `<span class="bg-purple-50 text-purple-700 px-3.5 py-1.5 rounded-lg text-xs font-bold border border-purple-100">Remontada</span>`;
-                    else if (cand.proyeccion < (candidatos[1] ? candidatos[1].votosActuales : 0)) estadoHTML = `<span class="bg-slate-50 text-slate-400 px-3.5 py-1.5 rounded-lg text-xs font-medium border border-slate-100">Fuera</span>`;
-                    else estadoHTML = `<span class="bg-amber-50 text-amber-700 px-3.5 py-1.5 rounded-lg text-xs font-bold border border-amber-100">Disputa</span>`;
-                }
-
+            candidatos.forEach((c, i) => {
+                const pos = i + 1;
+                let badge = pos <= 2 && eleccionActual === 'presidencial' ? `<span class="bg-emerald-50 text-emerald-700 px-3 py-1 rounded-lg text-xs font-bold border border-emerald-100">Clasifica</span>` : `<span class="bg-slate-50 text-slate-400 px-3 py-1 rounded-lg text-xs font-medium border border-slate-100">Pendiente</span>`;
+                
                 tbody.insertAdjacentHTML('beforeend', `
-                    <tr class="hover:bg-blue-50/50 transition-colors group">
-                        <td class="p-4 font-black text-slate-400 group-hover:text-blue-600 transition-colors text-center text-base">${pos}</td>
-                        <td class="p-4 flex items-center">
-                            ${pos <= 3 && obtenerRutaImagen(cand.nombre) ? `<img src="${obtenerRutaImagen(cand.nombre)}" class="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-sm mr-4">` : pos <= 3 ? `<div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 font-black border border-slate-200 mr-4">${pos}</div>` : '<div class="w-14"></div>'}
-                            <div>
-                                <div class="font-extrabold text-slate-800 text-base leading-snug">${cand.nombre}</div>
-                                <div class="text-xs text-slate-500">${cand.partido}</div>
-                            </div>
+                    <tr class="hover:bg-blue-50/50">
+                        <td class="p-4 text-center font-bold text-slate-400">${pos}</td>
+                        <td class="p-4">
+                            <div class="font-bold text-slate-800">${c.nombre}</div>
+                            <div class="text-[10px] text-slate-500">${c.partido}</div>
                         </td>
-                        <td class="p-4 text-right">
-                            <div class="font-mono text-slate-700 text-base">${cand.votosActuales.toLocaleString('es-PE')}</div>
-                            ${cand.nuevosVotos > 0 ? `<div class="text-[10px] text-emerald-500 font-bold mt-1 tracking-tight">+${cand.nuevosVotos.toLocaleString('es-PE')} <span class="text-slate-400 font-medium">desde ult. F5</span></div>` : ''}
-                        </td>
-                        <td class="p-4 text-right font-mono font-black text-blue-700 bg-blue-50/40 text-base group-hover:bg-blue-100/50 transition-colors">${cand.proyeccion.toLocaleString('es-PE')}${cand.tipoProyeccion === "Tendencia" ? '<span title="Modelo Momentum Activo" class="text-amber-500 ml-1.5 cursor-help">⚡</span>' : '<span title="Modelo Lineal Base" class="text-slate-300 ml-1.5 cursor-help">−</span>'}</td>
-                        <td class="p-4 text-center">${estadoHTML}</td>
+                        <td class="p-4 text-right font-mono">${c.votosActuales.toLocaleString('es-PE')}</td>
+                        <td class="p-4 text-right font-mono font-black text-blue-700 bg-blue-50/30">${c.proyeccion.toLocaleString('es-PE')}</td>
+                        <td class="p-4 text-center">${badge}</td>
                     </tr>
                 `);
             });
         }
 
-        // Auto-actualización cada 3 minutos (180,000 ms)
         window.onload = () => { cargarDatos(); setInterval(cargarDatos, 180000); };
     </script>
 </body>
