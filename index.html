@@ -6,7 +6,6 @@
     <title>Proyección ONPE 2026 | Análisis Electoral</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Pequeños ajustes para un scroll suave y tablas más bonitas */
         html { scroll-behavior: smooth; }
         .glass-header { background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); }
     </style>
@@ -19,12 +18,17 @@
                 <h1 class="text-2xl md:text-3xl font-black tracking-tight">Proyección Presidencial <span class="text-blue-400">2026</span></h1>
                 <p class="text-slate-400 text-sm mt-1">Monitor analítico en tiempo real | Segunda Vuelta</p>
             </div>
-            <div class="mt-4 md:mt-0 flex items-center space-x-2 bg-slate-800 px-4 py-2 rounded-lg border border-slate-700">
-                <span class="relative flex h-3 w-3">
-                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                  <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
-                </span>
-                <span class="text-sm font-medium text-slate-200">En vivo vía Vercel</span>
+            <div class="mt-4 md:mt-0 flex flex-col items-end">
+                <div class="flex items-center space-x-2 bg-slate-800 px-4 py-2 rounded-lg border border-slate-700">
+                    <span class="relative flex h-3 w-3">
+                      <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                    </span>
+                    <span class="text-sm font-medium text-slate-200">En vivo vía Vercel</span>
+                </div>
+                <div id="hora-actualizacion" class="text-xs text-slate-400 mt-2 font-mono">
+                    Última actualización: Calculando...
+                </div>
             </div>
         </div>
     </header>
@@ -66,7 +70,7 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-white text-slate-400 text-xs uppercase tracking-wider border-b-2 border-slate-100">
-                            <th class="p-4 font-bold w-16">Pos</th>
+                            <th class="p-4 font-bold w-16 text-center">Pos</th>
                             <th class="p-4 font-bold">Candidato</th>
                             <th class="p-4 font-bold text-right">Votos Contados</th>
                             <th class="p-4 font-bold text-right bg-blue-50/50">Proyección Final*</th>
@@ -75,7 +79,7 @@
                     </thead>
                     <tbody id="tabla-candidatos" class="text-sm divide-y divide-slate-100">
                         <tr>
-                            <td colspan="5" class="p-8 text-center text-slate-500">Conectando con servidores gubernamentales...</td>
+                            <td colspan="5" class="p-8 text-center text-slate-500">Conectando con servidores de la ONPE vía Vercel...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -111,9 +115,6 @@
                     </div>
                 </div>
             </div>
-            <div class="mt-6 text-center text-xs text-slate-500">
-                Desarrollado con datos públicos de acceso abierto.
-            </div>
         </section>
 
     </div>
@@ -122,17 +123,35 @@
         const URL_CANDS = "/api/onpe/candidatos";
         const URL_RES = "/api/onpe/resumen";
 
+        // NUEVO: Función para mapear nombres con las imágenes que subiste a GitHub
+        function obtenerRutaImagen(nombreCandidato) {
+            const nombreUpper = nombreCandidato.toUpperCase();
+            if (nombreUpper.includes("KEIKO") || nombreUpper.includes("FUJIMORI")) return "Keiko.png";
+            if (nombreUpper.includes("RAFAEL") || nombreUpper.includes("ALIAGA") || nombreUpper.includes("LÓPEZ")) return "Rafael.png";
+            if (nombreUpper.includes("SANCHEZ") || nombreUpper.includes("SÁNCHEZ")) return "Sanchez.png";
+            
+            // Si hay otro candidato en el top 3 que no es ninguno de los anteriores, retornamos una imagen genérica vacía
+            return null; 
+        }
+
         async function cargarDatos() {
             try {
                 const [resCands, resResumen] = await Promise.all([
                     fetch(URL_CANDS).then(res => res.json()),
                     fetch(URL_RES).then(res => res.json())
                 ]);
+                
                 procesarDatos(resCands.data || [], resResumen.data || {});
+                
+                // NUEVO: Actualizar la hora en la cabecera si todo salió bien
+                const ahora = new Date();
+                document.getElementById('hora-actualizacion').innerText = `Última actualización: ${ahora.toLocaleTimeString('es-PE')}`;
+                document.getElementById('hora-actualizacion').classList.replace('text-slate-400', 'text-green-400');
+
             } catch (error) {
                 console.error("Error:", error);
                 document.getElementById('tabla-candidatos').innerHTML = `
-                    <tr><td colspan="5" class="p-8 text-center text-red-500 font-medium">Error de conexión. Asegúrate de estar corriendo esto en Vercel con la configuración correcta.</td></tr>
+                    <tr><td colspan="5" class="p-8 text-center text-red-500 font-medium bg-red-50">Hubo un problema al cargar los datos. El proxy público de ONPE o Vercel podría estar saturado. Intenta recargar la página en unos segundos.</td></tr>
                 `;
             }
         }
@@ -180,14 +199,12 @@
             candidatos.sort((a, b) => b.votosActuales - a.votosActuales);
 
             let votosRestantes = (pctAvance > 0 && pctAvance < 100) ? Math.round(totalVotosActuales * (100 - pctAvance) / pctAvance) : 0;
-            const v2 = candidatos.length > 1 ? candidatos[1].votosActuales : 0;
-            const v3 = candidatos.length > 2 ? candidatos[2].votosActuales : 0;
 
             document.getElementById('avance-txt').innerText = `${pctAvance.toFixed(2)}%`;
             document.getElementById('votos-actuales-txt').innerText = totalVotosActuales.toLocaleString('es-PE');
             document.getElementById('votos-restantes-txt').innerText = votosRestantes.toLocaleString('es-PE');
 
-            // Lógica de disputa
+            // --- LÓGICA DE DISPUTA CON IMÁGENES ---
             if (candidatos.length >= 3) {
                 const cand2 = candidatos[1];
                 const cand3 = candidatos[2];
@@ -208,13 +225,20 @@
                 }
                 localStorage.setItem('onpe_diff_2_3', diferenciaActual.toString());
 
+                // Obtener imágenes para la tarjeta de disputa
+                const imgCand2 = obtenerRutaImagen(cand2.nombre);
+                const imgCand3 = obtenerRutaImagen(cand3.nombre);
+
                 document.getElementById('disputa-container').innerHTML = `
                     <div class="w-full">
                         <div class="flex flex-col md:flex-row items-center justify-between mb-4">
-                            <div class="text-center md:text-left flex-1">
-                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">2do Puesto</div>
-                                <div class="text-xl font-bold text-slate-800">${cand2.nombre}</div>
-                                <div class="text-lg font-mono text-slate-600 mt-1">${cand2.votosActuales.toLocaleString('es-PE')}</div>
+                            <div class="text-center md:text-left flex-1 flex flex-col md:flex-row items-center">
+                                ${imgCand2 ? `<img src="${imgCand2}" class="w-16 h-16 rounded-full object-cover border-4 border-white shadow-md mb-2 md:mb-0 md:mr-4">` : ''}
+                                <div>
+                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">2do Puesto</div>
+                                    <div class="text-xl font-bold text-slate-800 leading-tight">${cand2.nombre}</div>
+                                    <div class="text-lg font-mono text-slate-600 mt-1">${cand2.votosActuales.toLocaleString('es-PE')}</div>
+                                </div>
                             </div>
                             
                             <div class="flex flex-col items-center justify-center flex-1 my-4 md:my-0">
@@ -224,10 +248,13 @@
                                 </div>
                             </div>
 
-                            <div class="text-center md:text-right flex-1">
-                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">3er Puesto</div>
-                                <div class="text-xl font-bold text-slate-800">${cand3.nombre}</div>
-                                <div class="text-lg font-mono text-slate-600 mt-1">${cand3.votosActuales.toLocaleString('es-PE')}</div>
+                            <div class="text-center md:text-right flex-1 flex flex-col md:flex-row-reverse items-center">
+                                ${imgCand3 ? `<img src="${imgCand3}" class="w-16 h-16 rounded-full object-cover border-4 border-white shadow-md mb-2 md:mb-0 md:ml-4">` : ''}
+                                <div>
+                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">3er Puesto</div>
+                                    <div class="text-xl font-bold text-slate-800 leading-tight">${cand3.nombre}</div>
+                                    <div class="text-lg font-mono text-slate-600 mt-1">${cand3.votosActuales.toLocaleString('es-PE')}</div>
+                                </div>
                             </div>
                         </div>
                         <div class="text-center border-t border-slate-100 pt-3">
@@ -237,7 +264,7 @@
                 `;
             }
 
-            // Renderizar tabla
+            // --- RENDERIZAR TABLA CON IMÁGENES ---
             const tbody = document.getElementById('tabla-candidatos');
             tbody.innerHTML = '';
 
@@ -262,12 +289,27 @@
                     `<span title="Proyectado usando Tendencia Reciente (Momentum)" class="text-amber-500 ml-1.5 cursor-help">⚡</span>` : 
                     `<span title="Proyectado usando modelo Lineal básico" class="text-slate-300 ml-1.5 cursor-help">−</span>`;
 
+                // Logica de imagen para la tabla (solo los 3 primeros)
+                let imagenHTML = '';
+                if (pos <= 3) {
+                    const rutaImg = obtenerRutaImagen(cand.nombre);
+                    if (rutaImg) {
+                        imagenHTML = `<img src="${rutaImg}" alt="${cand.nombre}" class="w-10 h-10 rounded-full object-cover border border-slate-300 shadow-sm mr-4">`;
+                    } else {
+                        // Avatar generico si es top 3 pero no es keiko/rafael/sanchez
+                        imagenHTML = `<div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold border border-slate-300 shadow-sm mr-4">${pos}</div>`;
+                    }
+                }
+
                 tbody.insertAdjacentHTML('beforeend', `
                     <tr class="hover:bg-slate-50 transition-colors group">
-                        <td class="p-4 font-black text-slate-400 group-hover:text-blue-500 transition-colors">${pos}</td>
-                        <td class="p-4">
-                            <div class="font-bold text-slate-800">${cand.nombre}</div>
-                            <div class="text-xs text-slate-500 mt-0.5">${cand.partido}</div>
+                        <td class="p-4 font-black text-slate-400 group-hover:text-blue-500 transition-colors text-center">${pos}</td>
+                        <td class="p-4 flex items-center">
+                            ${imagenHTML}
+                            <div>
+                                <div class="font-bold text-slate-800">${cand.nombre}</div>
+                                <div class="text-xs text-slate-500 mt-0.5">${cand.partido}</div>
+                            </div>
                         </td>
                         <td class="p-4 text-right font-mono text-slate-600">${cand.votosActuales.toLocaleString('es-PE')}</td>
                         <td class="p-4 text-right font-mono font-black text-blue-600 bg-blue-50/30">${cand.proyeccion.toLocaleString('es-PE')}${iconoProy}</td>
