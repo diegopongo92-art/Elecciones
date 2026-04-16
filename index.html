@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Proyección ONPE 2026 - Vercel Edition</title>
+    <title>Proyección ONPE 2026 - Dashboard Inteligente</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 font-sans p-4 md:p-8">
 
-    <div class="max-w-5xl mx-auto">
+    <div class="max-w-6xl mx-auto">
         <header class="mb-8 text-center md:text-left">
             <h1 class="text-3xl md:text-4xl font-bold text-blue-900">Proyección Presidencial 2026</h1>
-            <p class="text-slate-500 mt-2">Datos en tiempo real vía Vercel Proxy</p>
+            <p class="text-slate-500 mt-2">Datos en tiempo real vía Vercel | Modelo de Proyección: <strong>Tendencia Reciente (Momentum)</strong></p>
         </header>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -39,7 +39,7 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-4">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
@@ -47,7 +47,7 @@
                             <th class="p-4 font-semibold border-b">Pos</th>
                             <th class="p-4 font-semibold border-b">Candidato</th>
                             <th class="p-4 font-semibold border-b text-right">Votos Actuales</th>
-                            <th class="p-4 font-semibold border-b text-right">Proyección Final</th>
+                            <th class="p-4 font-semibold border-b text-right bg-blue-50">Proyección Inteligente*</th>
                             <th class="p-4 font-semibold border-b">Estado 2da Vuelta</th>
                         </tr>
                     </thead>
@@ -59,10 +59,13 @@
                 </table>
             </div>
         </div>
+        
+        <div class="text-xs text-slate-400 text-justify mb-8 px-2">
+            <p><strong>*Sobre la Proyección Inteligente:</strong> Este cálculo no usa una regla de tres simple. Compara los votos actuales con los de tu última actualización para medir la "velocidad" reciente de votos de cada candidato. Si un candidato empieza a recibir votos más rápido (ej. llegada de actas rurales), el sistema ajustará su proyección final hacia arriba. Aún así, es un modelo estadístico y tiene margen de error. No es un resultado oficial de la ONPE.</p>
+        </div>
     </div>
 
     <script>
-        // Tus rutas proxy configuradas en Vercel
         const URL_CANDS = "/api/onpe/candidatos";
         const URL_RES = "/api/onpe/resumen";
 
@@ -72,29 +75,68 @@
                     fetch(URL_CANDS).then(res => res.json()),
                     fetch(URL_RES).then(res => res.json())
                 ]);
-
                 procesarDatos(resCands.data || [], resResumen.data || {});
             } catch (error) {
                 console.error("Error:", error);
                 document.getElementById('tabla-candidatos').innerHTML = `
-                    <tr><td colspan="5" class="p-4 text-center text-red-500">Error al obtener datos. Asegúrate de que el proyecto esté desplegado en Vercel con el archivo vercel.json.</td></tr>
+                    <tr><td colspan="5" class="p-4 text-center text-red-500">Error al obtener datos. Asegúrate de que el proyecto esté desplegado en Vercel.</td></tr>
                 `;
             }
         }
 
         function procesarDatos(cands, resumen) {
-            const pctAvance = resumen.actasContabilizadas || 0;
+            const pctAvance = parseFloat(resumen.actasContabilizadas) || 0;
             let totalVotosActuales = 0;
             
-            // Mapeo y proyecciones
+            // 1. Recuperar datos históricos del localStorage para el nuevo algoritmo
+            let historial = JSON.parse(localStorage.getItem('onpe_memoria_votos')) || { pct: 0, cands: {} };
+            let usarTendenciaAvanzada = false;
+            let deltaPct = pctAvance - historial.pct;
+
+            // Solo usamos el algoritmo avanzado si el % de actas ha avanzado al menos un poco desde la última vez
+            if (deltaPct > 0.05 && deltaPct < 100) {
+                usarTendenciaAvanzada = true;
+            }
+
+            // 2. Mapeo, totales y proyecciones
             let candidatos = cands.filter(c => c.nombreCandidato).map(c => {
-                const votos = c.totalVotosValidos || 0;
+                const votos = parseInt(c.totalVotosValidos) || 0;
+                const nombre = c.nombreCandidato;
                 totalVotosActuales += votos;
-                const proyeccion = (pctAvance > 0) ? Math.round(votos / (pctAvance / 100)) : 0;
-                return { nombre: c.nombreCandidato, partido: c.nombreAgrupacionPolitica, votosActuales: votos, proyeccion: proyeccion };
+                
+                let proyeccion = 0;
+                let tipoProyeccion = "";
+
+                // ALGORITMO DE TENDENCIA (MOMENTUM)
+                if (usarTendenciaAvanzada && historial.cands[nombre] !== undefined) {
+                    const votosAnteriores = historial.cands[nombre];
+                    const deltaVotos = votos - votosAnteriores;
+                    
+                    // Votos que está ganando por cada 1% de actas nuevas
+                    const velocidadVotosPorPorcentaje = deltaVotos / deltaPct; 
+                    const porcentajeFaltante = 100 - pctAvance;
+                    
+                    // Sumamos los votos actuales + los que ganaría si mantiene esta velocidad reciente
+                    proyeccion = Math.round(votos + (velocidadVotosPorPorcentaje * porcentajeFaltante));
+                    tipoProyeccion = "Tendencia";
+                    
+                    // Seguridad: si el cálculo se vuelve loco (por caídas del servidor), volvemos al normal
+                    if (proyeccion < votos) proyeccion = Math.round(votos / (pctAvance / 100));
+                } else {
+                    // ALGORITMO BÁSICO (Regla de tres) - Se usa la 1ra vez que abres la página
+                    proyeccion = (pctAvance > 0) ? Math.round(votos / (pctAvance / 100)) : 0;
+                    tipoProyeccion = "Lineal";
+                }
+
+                return { nombre: nombre, partido: c.nombreAgrupacionPolitica, votosActuales: votos, proyeccion: proyeccion, tipoProyeccion: tipoProyeccion };
             });
 
-            // Ordenar de mayor a menor
+            // 3. Guardar el estado actual para la próxima vez que el usuario actualice la página
+            let nuevoHistorial = { pct: pctAvance, cands: {} };
+            candidatos.forEach(c => nuevoHistorial.cands[c.nombre] = c.votosActuales);
+            localStorage.setItem('onpe_memoria_votos', JSON.stringify(nuevoHistorial));
+
+            // Ordenar de mayor a menor por VOTOS ACTUALES
             candidatos.sort((a, b) => b.votosActuales - a.votosActuales);
 
             let votosRestantes = (pctAvance > 0 && pctAvance < 100) ? Math.round(totalVotosActuales * (100 - pctAvance) / pctAvance) : 0;
@@ -106,54 +148,45 @@
             document.getElementById('votos-actuales-txt').innerText = totalVotosActuales.toLocaleString('es-PE');
             document.getElementById('votos-restantes-txt').innerText = votosRestantes.toLocaleString('es-PE');
 
-            // --- LÓGICA DE LA DISPUTA (2do vs 3er lugar) ---
+            // --- LÓGICA DE LA DISPUTA ---
             if (candidatos.length >= 3) {
                 const cand2 = candidatos[1];
                 const cand3 = candidatos[2];
                 const diferenciaActual = cand2.votosActuales - cand3.votosActuales;
-                
-                // Recuperar la diferencia de la última vez que el usuario cargó la página
                 const diffAnterior = localStorage.getItem('onpe_diff_2_3');
                 let tendenciaHTML = "";
 
-                if (diffAnterior !== null) {
+                if (diffAnterior !== null && diffAnterior !== diferenciaActual.toString()) {
                     const diffAnt = parseInt(diffAnterior);
                     const cambio = diferenciaActual - diffAnt;
                     
                     if (cambio > 0) {
-                        tendenciaHTML = `<span class="text-blue-600 font-bold">▲ La brecha se amplió en ${Math.abs(cambio).toLocaleString('es-PE')} votos</span> desde tu última actualización.`;
+                        tendenciaHTML = `<span class="text-blue-600 font-bold">▲ La brecha se amplió en ${Math.abs(cambio).toLocaleString('es-PE')} votos</span> en la última actualización.`;
                     } else if (cambio < 0) {
-                        tendenciaHTML = `<span class="text-red-600 font-bold">▼ La brecha se redujo en ${Math.abs(cambio).toLocaleString('es-PE')} votos</span> desde tu última actualización. ¡Final de fotografía!`;
-                    } else {
-                        tendenciaHTML = `<span class="text-slate-500 font-bold">▶ La diferencia se mantiene exacta</span> desde tu última actualización.`;
+                        tendenciaHTML = `<span class="text-red-600 font-bold">▼ La brecha se redujo en ${Math.abs(cambio).toLocaleString('es-PE')} votos</span> en la última actualización.`;
                     }
                 } else {
-                    tendenciaHTML = `<span class="text-slate-500">Actualiza la página más tarde para ver si la brecha se reduce o aumenta.</span>`;
+                    tendenciaHTML = `<span class="text-slate-500">Calculando cambios de tendencia. Actualiza la página pronto.</span>`;
                 }
-
-                // Guardar la nueva diferencia para la próxima vez
                 localStorage.setItem('onpe_diff_2_3', diferenciaActual.toString());
 
-                // Dibujar la tarjeta de disputa
                 document.getElementById('disputa-container').innerHTML = `
                     <div class="flex flex-col md:flex-row items-center justify-between bg-white p-4 rounded-lg shadow-sm border border-white">
                         <div class="text-center md:text-left mb-4 md:mb-0 w-full md:w-1/3">
                             <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">2do Puesto</div>
                             <div class="text-lg font-bold text-blue-900 leading-tight">${cand2.nombre}</div>
-                            <div class="text-xl font-bold text-slate-700 mt-1">${cand2.votosActuales.toLocaleString('es-PE')} votos</div>
+                            <div class="text-xl font-bold text-slate-700 mt-1">${cand2.votosActuales.toLocaleString('es-PE')}</div>
                         </div>
-                        
                         <div class="w-full md:w-1/3 flex justify-center mb-4 md:mb-0">
                             <div class="text-center px-4 py-2 bg-yellow-100 border border-yellow-200 rounded-full">
                                 <div class="text-xs font-bold text-yellow-800 uppercase">Diferencia actual</div>
                                 <div class="font-mono text-lg font-black text-yellow-900">${diferenciaActual.toLocaleString('es-PE')} votos</div>
                             </div>
                         </div>
-
                         <div class="text-center md:text-right w-full md:w-1/3">
                             <div class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">3er Puesto</div>
                             <div class="text-lg font-bold text-blue-900 leading-tight">${cand3.nombre}</div>
-                            <div class="text-xl font-bold text-slate-700 mt-1">${cand3.votosActuales.toLocaleString('es-PE')} votos</div>
+                            <div class="text-xl font-bold text-slate-700 mt-1">${cand3.votosActuales.toLocaleString('es-PE')}</div>
                         </div>
                     </div>
                     <div class="mt-4 text-center text-sm bg-white bg-opacity-60 py-2 rounded">
@@ -170,13 +203,23 @@
                 const pos = index + 1;
                 let estadoHTML = '';
                 
+                // Si la proyección del 3er lugar (o menor) es mayor que los votos PROYECTADOS del 2do, hay "Sorpresa posible"
+                const proyeccionSegundo = candidatos[1] ? candidatos[1].proyeccion : 0;
+                
                 if (pos <= 2) {
                     estadoHTML = `<span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-bold">Zona de Clasificación</span>`;
                 } else {
-                    estadoHTML = (cand.proyeccion < v2) ? 
-                        `<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold">Eliminado</span>` : 
-                        `<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold">En disputa</span>`;
+                    if (cand.proyeccion >= proyeccionSegundo) {
+                        estadoHTML = `<span class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-bold">Posible Remontada</span>`;
+                    } else if (cand.proyeccion < (candidatos[1] ? candidatos[1].votosActuales : 0)) {
+                        estadoHTML = `<span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs font-bold">Eliminado</span>`;
+                    } else {
+                        estadoHTML = `<span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-bold">En disputa</span>`;
+                    }
                 }
+
+                // Indicador visual de si está usando el algoritmo lineal básico o el inteligente
+                const iconoProy = cand.tipoProyeccion === "Tendencia" ? `<span title="Calculado por velocidad reciente" class="text-blue-500 ml-1">⚡</span>` : "";
 
                 tbody.insertAdjacentHTML('beforeend', `
                     <tr class="border-b hover:bg-slate-50 transition-colors">
@@ -186,14 +229,13 @@
                             <div class="text-xs text-slate-500">${cand.partido}</div>
                         </td>
                         <td class="p-4 text-right font-mono text-slate-700">${cand.votosActuales.toLocaleString('es-PE')}</td>
-                        <td class="p-4 text-right font-mono font-bold text-blue-700">${cand.proyeccion.toLocaleString('es-PE')}</td>
+                        <td class="p-4 text-right font-mono font-bold text-blue-700 bg-blue-50">${cand.proyeccion.toLocaleString('es-PE')}${iconoProy}</td>
                         <td class="p-4">${estadoHTML}</td>
                     </tr>
                 `);
             });
         }
 
-        // Ejecutar al iniciar
         window.onload = cargarDatos;
     </script>
 </body>
