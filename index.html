@@ -149,20 +149,28 @@
         }
 
         function procesarDatos(cands, resumen) {
-            // ACTUALIZACIÓN DE HORA OFICIAL ONPE
-            // Buscamos las llaves más comunes que la ONPE usa para sus fechas en los JSON
-            const fechaONPE = resumen.fechaAct || resumen.fechaActualizacion || resumen.fecha || "";
-            const horaONPE = resumen.horaAct || resumen.horaActualizacion || resumen.hora || "";
+            // --- NUEVA LÓGICA DE HORA: TRADUCTOR DE TIMESTAMP ---
+            let fechaRaw = resumen.fechaAct || resumen.fechaActualizacion || resumen.fecha || "";
+            let horaRaw = resumen.horaAct || resumen.horaActualizacion || resumen.hora || "";
             
             const horaElemento = document.getElementById('hora-actualizacion');
+            let posibleDatoCrudo = fechaRaw || horaRaw;
             
-            if (fechaONPE !== "" || horaONPE !== "") {
-                horaElemento.innerText = `Corte oficial ONPE: ${fechaONPE} ${horaONPE}`;
+            if (posibleDatoCrudo !== "") {
+                // Verificamos si es un Timestamp (puros números y al menos 10 dígitos)
+                if (!isNaN(posibleDatoCrudo) && String(posibleDatoCrudo).length >= 10) {
+                    const fechaTraducida = new Date(parseInt(posibleDatoCrudo));
+                    // Formateamos a algo leíble como: "16/4/2026 14:30:00"
+                    horaElemento.innerText = `Corte oficial ONPE: ${fechaTraducida.toLocaleDateString('es-PE')} a las ${fechaTraducida.toLocaleTimeString('es-PE')}`;
+                } else {
+                    // Si ya venía en formato de texto normal
+                    horaElemento.innerText = `Corte oficial ONPE: ${fechaRaw} ${horaRaw}`.trim();
+                }
                 horaElemento.classList.replace('text-slate-400', 'text-green-400');
             } else {
-                // Plan B: Si la API no trae la fecha, usamos la hora de la consulta
+                // Plan B
                 const ahora = new Date();
-                horaElemento.innerText = `Consultado a las: ${ahora.toLocaleTimeString('es-PE')} (Hora de la PC)`;
+                horaElemento.innerText = `Consultado a las: ${ahora.toLocaleTimeString('es-PE')} (Hora local)`;
                 horaElemento.classList.replace('text-slate-400', 'text-blue-400');
             }
 
