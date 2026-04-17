@@ -93,8 +93,8 @@
             <div id="tarjeta-disputa" class="lg:col-span-2 bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-7 shadow-sm transition-all duration-500">
                 <div class="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
                     <h2 class="text-lg font-bold flex items-center">
-                        <span id="disputa-icono" class="bg-slate-100 dark:bg-dark-800 text-slate-500 p-2 rounded-lg mr-3"></span>
-                        Competencia por el segundo lugar 
+                        <span id="disputa-icono" class="bg-slate-100 dark:bg-dark-800 text-slate-500 p-2 rounded-lg mr-3">⚔️</span>
+                        La pelea por el 2do Lugar
                     </h2>
                     <span id="alerta-sorpasso-badge" class="hidden bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-amber-200 dark:border-amber-800">DISPUTA</span>
                 </div>
@@ -200,20 +200,23 @@
             } else { alert("Copia el enlace: " + window.location.href); }
         }
 
-        // LÓGICA DE IMÁGENES CORREGIDA PARA EVITAR CONFUSIÓN DE NOMBRES
         function obtenerRutaImagen(nombre) {
             const n = nombre.toUpperCase();
-            
-            // Keiko Fujimori (Estricto: Nombre + Apellido)
             if (n.includes("KEIKO") && n.includes("FUJIMORI")) return "Keiko.png";
-            
-            // Rafael López Aliaga (Estricto: Evita a Rafael Belaunde)
             if (n.includes("RAFAEL") && (n.includes("ALIAGA") || n.includes("LÓPEZ") || n.includes("LOPEZ"))) return "Rafael.png";
-            
-            // Roberto Sánchez (Estricto: Evita a otros con apellido Sánchez)
             if (n.includes("ROBERTO") && (n.includes("SANCHEZ") || n.includes("SÁNCHEZ"))) return "Sanchez.png";
-            
             return null; 
+        }
+
+        // Función auxiliar para renderizar el cambio de votos claramente
+        function renderizarCambioVotos(nuevosVotos) {
+            if (nuevosVotos > 0) {
+                return `<div class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mt-1">▲ +${nuevosVotos.toLocaleString('es-PE')} vs act. anterior</div>`;
+            } else if (nuevosVotos < 0) {
+                return `<div class="text-[10px] font-bold text-red-600 dark:text-red-400 mt-1">▼ ${nuevosVotos.toLocaleString('es-PE')} vs act. anterior</div>`;
+            } else {
+                return `<div class="text-[10px] font-medium text-slate-400 dark:text-slate-500 mt-1">= Sin cambios vs act. anterior</div>`;
+            }
         }
 
         async function cargarDatos() {
@@ -298,6 +301,7 @@
                                 <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">2do Lugar</div>
                                 <div class="text-xl font-extrabold leading-tight">${cand2.nombre}</div>
                                 <div class="text-xl font-mono text-slate-600 dark:text-slate-400 mt-1">${cand2.votosActuales.toLocaleString('es-PE')}</div>
+                                ${renderizarCambioVotos(cand2.nuevosVotos)}
                             </div>
                         </div>
                         <div class="flex flex-col items-center justify-center flex-1 my-5 md:my-0">
@@ -312,6 +316,7 @@
                                 <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">3er Lugar</div>
                                 <div class="text-xl font-extrabold leading-tight">${cand3.nombre}</div>
                                 <div class="text-xl font-mono text-slate-600 dark:text-slate-400 mt-1">${cand3.votosActuales.toLocaleString('es-PE')}</div>
+                                ${renderizarCambioVotos(cand3.nuevosVotos)}
                             </div>
                         </div>
                     </div>
@@ -339,7 +344,7 @@
                         </td>
                         <td class="p-4 text-right">
                             <div class="font-mono text-base font-semibold text-slate-700 dark:text-slate-300">${cand.votosActuales.toLocaleString('es-PE')}</div>
-                            ${cand.nuevosVotos > 0 ? `<div class="text-[10px] text-emerald-500 font-bold mt-1">+${cand.nuevosVotos.toLocaleString('es-PE')} recientes</div>` : ''}
+                            ${cand.nuevosVotos !== 0 ? renderizarCambioVotos(cand.nuevosVotos) : ''}
                         </td>
                         <td class="p-4 text-right font-mono font-black text-brand-600 dark:text-brand-400 bg-brand-50/40 dark:bg-brand-900/10 text-base">${cand.proyeccion.toLocaleString('es-PE')}</td>
                         <td class="p-4 text-center">${estadoHTML}</td>
