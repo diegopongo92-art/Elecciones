@@ -20,7 +20,7 @@
             theme: {
                 extend: {
                     colors: {
-                        brand: { 50: '#f0f7ff', 100: '#e0effe', 500: '#3b82f6', 600: '#2563eb', 900: '#1e3a8a' },
+                        brand: { 50: '#f0f7ff', 100: '#e0effe', 400: '#60a5fa', 500: '#3b82f6', 600: '#2563eb', 900: '#1e3a8a' },
                         dark: { 800: '#1e293b', 900: '#0f172a', 950: '#020617' }
                     }
                 }
@@ -34,6 +34,10 @@
         .dark .glass-header { background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid #1e293b; }
         .tension-electoral { border-color: #f59e0b !important; }
         .dark .tension-electoral { border-color: #b45309 !important; background-color: rgba(69, 26, 3, 0.2); }
+        
+        /* Ocultar barra de scroll en la tabla para estética limpia, manteniendo la funcionalidad */
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
 </head>
 
@@ -74,18 +78,18 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div class="bg-white dark:bg-dark-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 border-l-4 border-l-brand-500">
                 <h3 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Actas Contabilizadas</h3>
-                <p id="avance-txt" class="text-4xl font-black text-slate-800 dark:text-white mt-2">--%</p>
+                <p id="avance-txt" data-value="0" class="text-4xl font-black text-slate-800 dark:text-white mt-2">0.00%</p>
                 <div class="w-full bg-slate-100 dark:bg-dark-800 rounded-full h-2 mt-3 overflow-hidden">
                     <div id="avance-bar" class="bg-brand-500 h-2 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
                 </div>
             </div>
             <div class="bg-white dark:bg-dark-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 border-l-4 border-l-violet-500">
                 <h3 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Votos Válidos</h3>
-                <p id="votos-actuales-txt" class="text-4xl font-black text-slate-800 dark:text-white mt-2">--</p>
+                <p id="votos-actuales-txt" data-value="0" class="text-4xl font-black text-slate-800 dark:text-white mt-2">0</p>
             </div>
             <div class="bg-white dark:bg-dark-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 border-l-4 border-l-amber-500">
                 <h3 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Votos por Contar (Est.)</h3>
-                <p id="votos-restantes-txt" class="text-4xl font-black text-amber-600 dark:text-amber-500 mt-2">--</p>
+                <p id="votos-restantes-txt" data-value="0" class="text-4xl font-black text-amber-600 dark:text-amber-500 mt-2">0</p>
             </div>
         </div>
 
@@ -123,13 +127,13 @@
             <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-dark-950">
                 <div class="flex items-center space-x-2">
                     <h2 class="font-bold text-lg">Tabla de Posiciones y Proyecciones</h2>
-                    <span id="actualizando-spinner" class="hidden text-xs bg-brand-100 dark:bg-brand-900/30 text-brand-600 px-2.5 py-1 rounded-full animate-pulse font-semibold">Actualizando...</span>
+                    <span id="actualizando-spinner" class="hidden text-xs bg-brand-100 dark:bg-brand-900/30 text-brand-600 px-2.5 py-1 rounded-full animate-pulse font-semibold shadow-sm">Actualizando...</span>
                 </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-white dark:bg-dark-900 text-slate-400 dark:text-slate-500 text-xs uppercase tracking-wider border-b-2 border-slate-100 dark:border-slate-800">
+            <div class="overflow-y-auto max-h-[500px] scrollbar-hide relative">
+                <table class="w-full text-left border-collapse relative">
+                    <thead class="sticky top-0 z-20 bg-white dark:bg-dark-900 shadow-sm border-b border-slate-200 dark:border-slate-700">
+                        <tr class="text-slate-400 dark:text-slate-500 text-xs uppercase tracking-wider">
                             <th class="p-4 font-bold w-16 text-center">Pos</th>
                             <th class="p-4 font-bold">Candidato</th>
                             <th class="p-4 font-bold text-right">Votos Contados</th>
@@ -138,8 +142,7 @@
                         </tr>
                     </thead>
                     <tbody id="tabla-candidatos" class="text-sm divide-y divide-slate-100 dark:divide-slate-800/50">
-                        <tr><td colspan="5" class="p-8 text-center text-slate-500">Sincronizando datos...</td></tr>
-                    </tbody>
+                        </tbody>
                 </table>
             </div>
         </div>
@@ -149,7 +152,7 @@
                 <span class="text-blue-400 mr-2">📊</span>
                 Metodología de Proyección Electoral
             </h2>
-            <p class="mb-7 text-sm leading-relaxed text-slate-400">El presente panel de monitoreo implementa un modelo matemático dinámico que procesa los datos de acceso público emitidos por la Oficina Nacional de Procesos Electorales (ONPE) en tiempo real. Su objetivo es estimar la tendencia del escrutinio hacia el 100% de actas contabilizadas mediante algoritmos de extrapolación. Cabe destacar que los valores presentados son estrictamente referenciales y predictivos, y no constituyen resultados oficiales.</p>
+            <p class="mb-7 text-sm leading-relaxed text-slate-400">El presente panel de monitoreo implementa un modelo matemático dinámico que procesa los datos de acceso público emitidos por la Oficina Nacional de Procesos Electorales (ONPE) en tiempo real. Su objetivo es estimar la tendencia del escrutinio hacia el 100% de actas contabilizadas mediante algoritmos de extrapolación.</p>
             
             <div class="grid md:grid-cols-2 gap-8 font-mono text-xs">
                 <div class="bg-black/30 p-5 rounded-xl border border-slate-700 hover:border-slate-600 transition-colors">
@@ -157,15 +160,15 @@
                         <span class="bg-slate-700 text-slate-100 text-[10px] font-black px-2.5 py-1 rounded-full mr-2.5">MODELO A</span>
                         <h3 class="text-white font-semibold text-sm">Proyección Lineal Directa</h3>
                     </div>
-                    <p class="text-slate-400 mb-3 text-justify">Extrapolación estadística que asume que la proporción de distribución de los votos restantes mantendrá un comportamiento idéntico a la muestra actual. Utilizado como línea base de medición.</p>
+                    <p class="text-slate-400 mb-3 text-justify">Extrapolación estadística que asume que la proporción de distribución de los votos restantes mantendrá un comportamiento idéntico a la muestra actual.</p>
                 </div>
 
                 <div class="bg-black/30 p-5 rounded-xl border border-blue-900/50 hover:border-blue-800 transition-colors">
                     <div class="flex items-center mb-3.5">
                         <span class="bg-blue-600 text-white text-[10px] font-black px-2.5 py-1 rounded-full mr-2.5 flex items-center">⚡ MODELO B</span>
-                        <h3 class="text-blue-100 font-semibold text-sm">Momentum (Tendencia Reciente)</h3>
+                        <h3 class="text-blue-100 font-semibold text-sm">Momentum (Tendencia)</h3>
                     </div>
-                    <p class="text-slate-400 mb-3 text-justify">Algoritmo que mide la velocidad de ingreso de votos entre las últimas actualizaciones del servidor para ajustar la curva de proyección final. Ayuda a mitigar y corregir sesgos geográficos o de bolsones electorales tardíos.</p>
+                    <p class="text-slate-400 mb-3 text-justify">Mide la velocidad de ingreso de votos entre actualizaciones para ajustar la curva final. Corrige sesgos geográficos o de bolsones electorales tardíos.</p>
                 </div>
             </div>
             <div class="mt-8 text-center text-xs text-slate-600 border-t border-slate-800 pt-4">
@@ -180,6 +183,66 @@
         const URL_RES = "/api/onpe/resumen";
         let graficoDonut = null;
         let chartHistoria = null;
+        let esPrimeraCarga = true;
+
+        // Función para inyectar Skeletons (animación de carga estilo YouTube)
+        function mostrarSkeletons() {
+            const tbody = document.getElementById('tabla-candidatos');
+            let skeletonsHTML = '';
+            for(let i=0; i<6; i++){
+                skeletonsHTML += `
+                <tr class="animate-pulse bg-white dark:bg-dark-900">
+                    <td class="p-4"><div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-6 mx-auto"></div></td>
+                    <td class="p-4 flex items-center">
+                        <div class="rounded-full bg-slate-200 dark:bg-slate-800 h-10 w-10 mr-4"></div>
+                        <div class="flex-1 space-y-2">
+                            <div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-32"></div>
+                            <div class="h-3 bg-slate-200 dark:bg-slate-800 rounded w-20"></div>
+                        </div>
+                    </td>
+                    <td class="p-4 text-right"><div class="h-4 bg-slate-200 dark:bg-slate-800 rounded w-20 ml-auto"></div></td>
+                    <td class="p-4 text-right"><div class="h-4 bg-brand-100 dark:bg-brand-900/30 rounded w-24 ml-auto"></div></td>
+                    <td class="p-4 text-center"><div class="h-6 bg-slate-200 dark:bg-slate-800 rounded-lg w-20 mx-auto"></div></td>
+                </tr>`;
+            }
+            tbody.innerHTML = skeletonsHTML;
+        }
+
+        // Animación "Cuenta Kilómetros" para números
+        function animarNumero(id, endValue, isDecimal = false) {
+            const element = document.getElementById(id);
+            if (!element) return;
+            
+            let startValue = parseFloat(element.getAttribute('data-value')) || 0;
+            if (startValue === endValue) return; 
+
+            element.setAttribute('data-value', endValue);
+            const duration = 1200; // 1.2 segundos
+            const startTime = performance.now();
+
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Efecto Easing (desacelera al final)
+                const easeOut = 1 - Math.pow(1 - progress, 4); 
+                let currentVal = startValue + (endValue - startValue) * easeOut;
+                
+                if (isDecimal) {
+                    element.innerText = currentVal.toFixed(2) + '%';
+                } else {
+                    element.innerText = Math.round(currentVal).toLocaleString('es-PE');
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                } else {
+                    if (isDecimal) element.innerText = endValue.toFixed(2) + '%';
+                    else element.innerText = endValue.toLocaleString('es-PE');
+                }
+            }
+            requestAnimationFrame(update);
+        }
 
         function toggleDarkMode() {
             document.documentElement.classList.toggle('dark');
@@ -188,6 +251,7 @@
             document.getElementById('dark-icon').innerText = isDark ? '☀️' : '🌙';
             if(graficoDonut) { Chart.defaults.color = isDark ? '#94a3b8' : '#64748b'; graficoDonut.update(); }
         }
+
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
             document.getElementById('dark-icon').innerText = '☀️';
@@ -208,6 +272,15 @@
             return null; 
         }
 
+        // IDENTIFICACIÓN DE COLORES PARTIDARIOS
+        function obtenerColorPartido(nombre) {
+            const n = nombre.toUpperCase();
+            if (n.includes("KEIKO") || n.includes("FUJIMORI")) return "#f97316"; // Naranja
+            if (n.includes("RAFAEL") || n.includes("ALIAGA")) return "#0ea5e9";  // Celeste
+            if (n.includes("ROBERTO") || n.includes("SANCHEZ")) return "#10b981"; // Verde JPP
+            return null; // Devuelve null para que use colores por defecto si no es ninguno
+        }
+
         function renderizarCambioVotos(nuevosVotos) {
             if (nuevosVotos > 0) {
                 return `<div class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 mt-1">▲ +${nuevosVotos.toLocaleString('es-PE')} vs act. anterior</div>`;
@@ -220,6 +293,8 @@
 
         async function cargarDatos() {
             document.getElementById('actualizando-spinner').classList.remove('hidden');
+            if (esPrimeraCarga) mostrarSkeletons();
+            
             try {
                 const t = new Date().getTime(); 
                 const [resCands, resResumen] = await Promise.all([
@@ -227,8 +302,14 @@
                     fetch(`${URL_RES}?t=${t}`).then(res => res.json())
                 ]);
                 procesarDatos(resCands.data || [], resResumen.data || {});
-            } catch (e) { console.error(e); } 
-            finally { document.getElementById('actualizando-spinner').classList.add('hidden'); }
+            } catch (e) { 
+                console.error(e);
+                if(esPrimeraCarga) document.getElementById('tabla-candidatos').innerHTML = '<tr><td colspan="5" class="p-8 text-center text-red-500">Error conectando con la API ONPE.</td></tr>';
+            } 
+            finally { 
+                document.getElementById('actualizando-spinner').classList.add('hidden');
+                esPrimeraCarga = false;
+            }
         }
 
         function procesarDatos(cands, resumen) {
@@ -246,9 +327,18 @@
 
             const pctAvance = parseFloat(resumen.actasContabilizadas) || 0;
             let totalVotosActuales = 0;
-            let historial = JSON.parse(localStorage.getItem('onpe_memoria_votos_dp')) || { pct: 0, cands: {} };
+            
+            // 1. LÓGICA DE MEMORIA PERSISTENTE (Sobrevive al F5)
+            let memoria = JSON.parse(localStorage.getItem('onpe_estado_persistente_v2')) || {
+                pct: 0,
+                totales_anteriores: {},
+                ultimos_cambios: {}
+            };
+
+            // Detectamos si la ONPE ha publicado datos nuevos (si el % subió)
+            let huboActualizacionReal = pctAvance > memoria.pct;
             let usarTendenciaAvanzada = false;
-            let deltaPct = pctAvance - historial.pct;
+            let deltaPct = pctAvance - memoria.pct;
 
             if (deltaPct > 0.05 && deltaPct < 100) usarTendenciaAvanzada = true;
 
@@ -257,29 +347,47 @@
                 const nombre = c.nombreCandidato;
                 totalVotosActuales += votos;
                 
-                let proyeccion = 0;
-                let tipoProyeccion = "Lineal";
-                let nuevosVotos = (historial.cands[nombre] !== undefined) ? votos - historial.cands[nombre] : 0;
+                let nuevosVotos = 0;
 
-                if (usarTendenciaAvanzada && historial.cands[nombre] !== undefined) {
-                    const vel = nuevosVotos / deltaPct; 
+                // CÁLCULO INTELIGENTE DE DIFERENCIAS
+                if (huboActualizacionReal) {
+                    // Si hay datos nuevos de ONPE, calculamos cuánto subió cada uno
+                    if (memoria.totales_anteriores[nombre] !== undefined) {
+                        nuevosVotos = votos - memoria.totales_anteriores[nombre];
+                    }
+                    // Y guardamos este cambio en memoria para que sobreviva al F5
+                    memoria.ultimos_cambios[nombre] = nuevosVotos;
+                } else {
+                    // Si es un simple F5, rescatamos el último cambio que guardamos
+                    nuevosVotos = memoria.ultimos_cambios[nombre] || 0;
+                }
+
+                let proyeccion = 0;
+                if (usarTendenciaAvanzada && memoria.totales_anteriores[nombre] !== undefined) {
+                    let vel = (votos - memoria.totales_anteriores[nombre]) / deltaPct; 
                     proyeccion = Math.round(votos + (vel * (100 - pctAvance)));
-                    tipoProyeccion = "Tendencia";
                     if (proyeccion < votos) proyeccion = Math.round(votos / (pctAvance / 100));
                 } else {
                     proyeccion = (pctAvance > 0) ? Math.round(votos / (pctAvance / 100)) : 0;
                 }
-                return { nombre, partido: c.nombreAgrupacionPolitica, votosActuales: votos, proyeccion, tipoProyeccion, nuevosVotos };
+                return { nombre, partido: c.nombreAgrupacionPolitica, votosActuales: votos, proyeccion, nuevosVotos };
             });
 
-            localStorage.setItem('onpe_memoria_votos_dp', JSON.stringify({ pct: pctAvance, cands: Object.fromEntries(candidatos.map(c => [c.nombre, c.votosActuales])) }));
+            // SOLO ACTUALIZAMOS LA BASE DE DATOS SI LA ONPE ACTUALIZÓ REALMENTE
+            if (huboActualizacionReal || Object.keys(memoria.totales_anteriores).length === 0) {
+                memoria.pct = pctAvance;
+                memoria.totales_anteriores = Object.fromEntries(candidatos.map(c => [c.nombre, c.votosActuales]));
+                localStorage.setItem('onpe_estado_persistente_v2', JSON.stringify(memoria));
+            }
+
             candidatos.sort((a, b) => b.votosActuales - a.votosActuales);
 
             let votosRestantes = (pctAvance > 0 && pctAvance < 100) ? Math.round(totalVotosActuales * (100 - pctAvance) / pctAvance) : 0;
-            document.getElementById('avance-txt').innerText = `${pctAvance.toFixed(2)}%`;
+            
+            animarNumero('avance-txt', pctAvance, true);
             document.getElementById('avance-bar').style.width = `${pctAvance}%`;
-            document.getElementById('votos-actuales-txt').innerText = totalVotosActuales.toLocaleString('es-PE');
-            document.getElementById('votos-restantes-txt').innerText = votosRestantes.toLocaleString('es-PE');
+            animarNumero('votos-actuales-txt', totalVotosActuales, false);
+            animarNumero('votos-restantes-txt', votosRestantes, false);
 
             if(candidatos.length >= 3) renderizarGrafico(candidatos.slice(0, 3));
 
@@ -327,21 +435,23 @@
 
             const tbody = document.getElementById('tabla-candidatos');
             tbody.innerHTML = '';
+            const maxVotos = candidatos.length > 0 ? candidatos[0].votosActuales : 1;
+
             candidatos.forEach((cand, index) => {
                 const pos = index + 1;
+                const porcentajeBarra = Math.min((cand.votosActuales / maxVotos) * 100, 100);
                 
-                // LÓGICA DE ESTADOS ACTUALIZADA
                 let estadoHTML = '';
                 if (pos <= 2) {
-                    estadoHTML = `<span class="bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-3.5 py-1.5 rounded-lg text-xs font-bold">Clasifica</span>`;
+                    estadoHTML = `<span class="bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-3.5 py-1.5 rounded-lg text-xs font-bold shadow-sm">Clasifica</span>`;
                 } else if (pos === 3) {
-                    estadoHTML = `<span class="bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-3.5 py-1.5 rounded-lg text-xs font-bold">En disputa</span>`;
+                    estadoHTML = `<span class="bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-3.5 py-1.5 rounded-lg text-xs font-bold shadow-sm">En disputa</span>`;
                 } else {
                     estadoHTML = `<span class="bg-slate-50 text-slate-400 dark:bg-dark-800 px-3.5 py-1.5 rounded-lg text-xs font-medium">Sin opciones</span>`;
                 }
 
                 tbody.insertAdjacentHTML('beforeend', `
-                    <tr class="hover:bg-brand-50/50 dark:hover:bg-dark-800 transition-colors group">
+                    <tr class="hover:bg-brand-50/30 dark:hover:bg-dark-800/50 transition-colors group bg-white dark:bg-dark-900">
                         <td class="p-4 font-black text-slate-400 text-center text-base">${pos}</td>
                         <td class="p-4 flex items-center">
                             ${obtenerRutaImagen(cand.nombre) ? `<img src="${obtenerRutaImagen(cand.nombre)}" class="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-sm mr-4 bg-slate-200">` : ``}
@@ -352,9 +462,16 @@
                         </td>
                         <td class="p-4 text-right">
                             <div class="font-mono text-base font-semibold text-slate-700 dark:text-slate-300">${cand.votosActuales.toLocaleString('es-PE')}</div>
-                            ${cand.nuevosVotos !== 0 ? renderizarCambioVotos(cand.nuevosVotos) : ''}
+                            
+                            ${renderizarCambioVotos(cand.nuevosVotos)}
+                            
+                            <div class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full mt-2 overflow-hidden flex justify-end">
+                                <div class="bg-brand-400 dark:bg-brand-600 h-full rounded-full transition-all duration-1000 ease-out" style="width: ${porcentajeBarra}%"></div>
+                            </div>
                         </td>
-                        <td class="p-4 text-right font-mono font-black text-brand-600 dark:text-brand-400 bg-brand-50/40 dark:bg-brand-900/10 text-base">${cand.proyeccion.toLocaleString('es-PE')}</td>
+                        <td class="p-4 text-right font-mono font-black text-brand-600 dark:text-brand-400 bg-brand-50/40 dark:bg-brand-900/10 text-base">
+                            ${cand.proyeccion.toLocaleString('es-PE')}
+                        </td>
                         <td class="p-4 text-center">${estadoHTML}</td>
                     </tr>
                 `);
@@ -364,12 +481,23 @@
         function renderizarGrafico(topCandidatos) {
             const ctx = document.getElementById('grafico-top').getContext('2d');
             const data = topCandidatos.map(c => c.votosActuales);
-            if (graficoDonut) { graficoDonut.data.datasets[0].data = data; graficoDonut.update(); } 
-            else {
+            
+            // Asignación de colores basada en el partido político
+            const defaultColors = ['#3b82f6', '#8b5cf6', '#f59e0b'];
+            const backgroundColor = topCandidatos.map((c, i) => obtenerColorPartido(c.nombre) || defaultColors[i]);
+
+            if (graficoDonut) { 
+                graficoDonut.data.datasets[0].data = data; 
+                graficoDonut.data.datasets[0].backgroundColor = backgroundColor;
+                graficoDonut.update(); 
+            } else {
                 Chart.defaults.color = document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b';
                 graficoDonut = new Chart(ctx, {
                     type: 'doughnut',
-                    data: { labels: topCandidatos.map(c => c.nombre.split(' ')[0]), datasets: [{ data: data, backgroundColor: ['#3b82f6', '#8b5cf6', '#f59e0b'], borderWidth: 0 }] },
+                    data: { 
+                        labels: topCandidatos.map(c => c.nombre.split(' ')[0]), 
+                        datasets: [{ data: data, backgroundColor: backgroundColor, borderWidth: 0 }] 
+                    },
                     options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom' } } }
                 });
             }
