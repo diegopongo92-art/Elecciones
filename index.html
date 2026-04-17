@@ -200,11 +200,19 @@
             } else { alert("Copia el enlace: " + window.location.href); }
         }
 
+        // LÓGICA DE IMÁGENES CORREGIDA PARA EVITAR CONFUSIÓN DE NOMBRES
         function obtenerRutaImagen(nombre) {
             const n = nombre.toUpperCase();
-            if (n.includes("KEIKO") || n.includes("FUJIMORI")) return "Keiko.png";
-            if (n.includes("RAFAEL") || n.includes("ALIAGA") || n.includes("LÓPEZ")) return "Rafael.png";
-            if (n.includes("SANCHEZ") || n.includes("SÁNCHEZ")) return "Sanchez.png";
+            
+            // Keiko Fujimori (Estricto: Nombre + Apellido)
+            if (n.includes("KEIKO") && n.includes("FUJIMORI")) return "Keiko.png";
+            
+            // Rafael López Aliaga (Estricto: Evita a Rafael Belaunde)
+            if (n.includes("RAFAEL") && (n.includes("ALIAGA") || n.includes("LÓPEZ") || n.includes("LOPEZ"))) return "Rafael.png";
+            
+            // Roberto Sánchez (Estricto: Evita a otros con apellido Sánchez)
+            if (n.includes("ROBERTO") && (n.includes("SANCHEZ") || n.includes("SÁNCHEZ"))) return "Sanchez.png";
+            
             return null; 
         }
 
