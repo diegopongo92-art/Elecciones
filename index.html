@@ -4,33 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <title>Monitor Electoral Perú 2026 | Analítica Diego Pongo</title>
-    <meta name="description" content="Resultados en tiempo real y proyecciones avanzadas de la Segunda Vuelta Presidencial. Datos directos de la API de ONPE.">
-    <meta property="og:title" content="📊 Monitor Electoral Perú 2026 - En Vivo">
-    <meta property="og:description" content="Diferencia de votos y tendencias al instante. Analítica por Diego Pongo.">
+    <title>Dashboard Electoral Perú 2026 | Analítica Diego Pongo</title>
+    <meta name="description" content="Resultados en tiempo real y proyecciones avanzadas de la Segunda Vuelta Presidencial.">
+    <meta property="og:title" content="📊 Dashboard Electoral Perú 2026 - En Vivo">
+    <meta property="og:description" content="Monitor analítico con proyecciones y tendencias al instante. Analítica por Diego Pongo.">
     <meta property="og:type" content="website">
-    <meta property="og:image" content="https://images.unsplash.com/photo-1540910419892-4a39d20b2944?auto=format&fit=crop&w=1200&h=630&q=80"> <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <script>
-        // CONFIGURACIÓN DE TAILWIND PARA MODO OSCURO Y COLORES ELEGANTES
         tailwind.config = {
             darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        brand: {
-                            50: '#f0f7ff',
-                            100: '#e0effe',
-                            500: '#3b82f6',
-                            600: '#2563eb',
-                            900: '#1e3a8a',
-                        },
-                        dark: {
-                            800: '#1e293b',
-                            900: '#0f172a',
-                            950: '#020617',
-                        }
+                        brand: { 50: '#f0f7ff', 100: '#e0effe', 500: '#3b82f6', 600: '#2563eb', 900: '#1e3a8a' },
+                        dark: { 800: '#1e293b', 900: '#0f172a', 950: '#020617' }
                     }
                 }
             }
@@ -38,322 +28,318 @@
     </script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
         body { font-family: 'Inter', sans-serif; transition: background-color 0.3s ease; }
-        .glass { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(12px); }
-        .dark .glass { background: rgba(15, 23, 42, 0.8); }
-        .card-shadow { box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05); }
-        .animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .glass-header { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
+        .dark .glass-header { background: rgba(15, 23, 42, 0.9); border-bottom: 1px solid #1e293b; }
+        .tension-electoral { border-color: #f59e0b !important; }
+        .dark .tension-electoral { border-color: #b45309 !important; background-color: rgba(69, 26, 3, 0.2); }
     </style>
 </head>
 
-<body class="bg-slate-50 dark:bg-dark-950 text-slate-900 dark:text-slate-100 min-h-screen">
+<body class="bg-slate-50 dark:bg-dark-950 text-slate-800 dark:text-slate-200 min-h-screen pb-12">
 
-    <nav class="sticky top-0 z-50 glass border-b border-slate-200 dark:border-slate-800 py-4">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-brand-500/20">DP</div>
-                <div>
-                    <h1 class="text-lg font-extrabold tracking-tight leading-none">ANALÍTICA ELECTORAL</h1>
-                    <p class="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-500 dark:text-brand-500">Por Diego Pongo</p>
-                </div>
+    <header class="glass-header py-6 shadow-sm mb-8 sticky top-0 z-50 transition-colors">
+        <div class="max-w-6xl mx-auto px-4 md:px-8 flex flex-col md:flex-row justify-between items-center">
+            <div class="text-center md:text-left">
+                <h1 class="text-2xl md:text-3xl font-black tracking-tight text-slate-900 dark:text-white">Proyección Presidencial <span class="text-brand-600">2026</span></h1>
+                <p class="text-xs text-brand-600 dark:text-brand-400 font-bold tracking-wider mt-1.5 uppercase">
+                    Analítica & Desarrollo por Diego Pongo
+                </p>
             </div>
-            
-            <div class="flex items-center space-x-4">
-                <button onclick="toggleDarkMode()" class="p-2.5 rounded-xl bg-slate-100 dark:bg-dark-800 hover:bg-slate-200 dark:hover:bg-dark-700 transition-colors">
-                    <span id="dark-icon" class="text-xl">🌙</span>
-                </button>
-                <button onclick="compartirApp()" class="hidden md:flex items-center space-x-2 bg-brand-600 hover:bg-brand-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all shadow-lg shadow-brand-500/20 active:scale-95">
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
-                    <span>Compartir</span>
-                </button>
+            <div class="mt-5 md:mt-0 flex flex-col items-center md:items-end gap-3">
+                <div class="flex items-center gap-2">
+                    <button onclick="toggleDarkMode()" class="p-2 rounded-xl bg-slate-100 dark:bg-dark-800 hover:bg-slate-200 dark:hover:bg-dark-700 transition-colors text-sm">
+                        <span id="dark-icon">🌙</span>
+                    </button>
+                    <button onclick="compartirApp()" class="flex items-center space-x-1 bg-brand-600 hover:bg-brand-700 text-white px-4 py-2 rounded-xl font-bold text-xs transition-all shadow-md shadow-brand-500/20">
+                        <span>Compartir</span>
+                    </button>
+                    <div class="flex items-center space-x-2 bg-slate-800 dark:bg-dark-900 px-3 py-2 rounded-xl border border-slate-700">
+                        <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
+                        <span class="text-xs font-semibold text-slate-200 tracking-wide">Radar ONPE</span>
+                    </div>
+                </div>
+                <div id="hora-actualizacion" class="text-xs text-slate-500 dark:text-slate-400 font-mono">Sincronizando...</div>
             </div>
         </div>
-    </nav>
+    </header>
 
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-6xl mx-auto px-4 md:px-8">
         
-        <div class="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-black bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-400 mb-4 tracking-wider uppercase">
-                    <span class="w-2 h-2 bg-brand-500 rounded-full mr-2 animate-pulse"></span>
-                    En Vivo: Segunda Vuelta 2026
-                </span>
-                <h2 class="text-4xl font-black text-slate-900 dark:text-white mb-2">Monitor de Escala Presidencial</h2>
-                <p id="hora-actualizacion" class="text-sm text-slate-500 font-medium">Sincronizando con servidores de ONPE...</p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white dark:bg-dark-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 border-l-4 border-l-brand-500">
+                <h3 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Actas Contabilizadas</h3>
+                <p id="avance-txt" class="text-4xl font-black text-slate-800 dark:text-white mt-2">--%</p>
+                <div class="w-full bg-slate-100 dark:bg-dark-800 rounded-full h-2 mt-3 overflow-hidden">
+                    <div id="avance-bar" class="bg-brand-500 h-2 rounded-full transition-all duration-1000 ease-out" style="width: 0%"></div>
+                </div>
             </div>
-            
-            <div class="flex gap-4 overflow-x-auto pb-2 md:pb-0">
-                <div class="bg-white dark:bg-dark-900 p-4 rounded-2xl card-shadow border border-slate-100 dark:border-slate-800 min-w-[160px]">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Avance Actas</p>
-                    <p id="avance-txt" class="text-2xl font-black text-brand-600">--%</p>
-                </div>
-                <div class="bg-white dark:bg-dark-900 p-4 rounded-2xl card-shadow border border-slate-100 dark:border-slate-800 min-w-[160px]">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Votos Procesados</p>
-                    <p id="votos-actuales-txt" class="text-2xl font-black">--</p>
-                </div>
+            <div class="bg-white dark:bg-dark-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 border-l-4 border-l-violet-500">
+                <h3 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Votos Válidos</h3>
+                <p id="votos-actuales-txt" class="text-4xl font-black text-slate-800 dark:text-white mt-2">--</p>
+            </div>
+            <div class="bg-white dark:bg-dark-900 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 border-l-4 border-l-amber-500">
+                <h3 class="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">Votos por Contar (Est.)</h3>
+                <p id="votos-restantes-txt" class="text-4xl font-black text-amber-600 dark:text-amber-500 mt-2">--</p>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-12">
-            
-            <div id="tarjeta-disputa" class="lg:col-span-8 bg-white dark:bg-dark-900 rounded-[2rem] p-8 card-shadow border border-slate-100 dark:border-slate-800 relative overflow-hidden">
-                <div class="absolute top-0 right-0 p-8 opacity-5">
-                    <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div id="tarjeta-disputa" class="lg:col-span-2 bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-7 shadow-sm transition-all duration-500">
+                <div class="flex justify-between items-center mb-6 border-b border-slate-100 dark:border-slate-800 pb-4">
+                    <h2 class="text-lg font-bold flex items-center">
+                        <span id="disputa-icono" class="bg-slate-100 dark:bg-dark-800 text-slate-500 p-2 rounded-lg mr-3">⚔️</span>
+                        La pelea por el 2do Lugar
+                    </h2>
+                    <span id="alerta-sorpasso-badge" class="hidden bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-amber-200 dark:border-amber-800">DISPUTA</span>
                 </div>
                 
-                <h3 class="text-xl font-extrabold mb-8 flex items-center">
-                    Batalla por el Balotaje
-                    <span id="badge-tension" class="ml-4 hidden text-[10px] bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-3 py-1 rounded-lg animate-pulse uppercase">Empate Técnico</span>
-                </h3>
-
-                <div id="disputa-container" class="min-h-[200px] flex items-center justify-center">
-                    <div class="animate-pulse text-slate-300">Procesando vectores de votación...</div>
+                <div id="disputa-container" class="min-h-[100px] flex flex-col justify-center">
+                    <p class="text-sm text-slate-500 animate-pulse text-center">Analizando tendencia reciente...</p>
                 </div>
 
-                <div class="mt-8 pt-8 border-t border-slate-50 dark:border-slate-800">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Brecha Histórica (Últimas actualizaciones)</p>
-                    <div class="h-32">
+                <div class="mt-6 pt-4 border-t border-slate-50 dark:border-slate-800/50 hidden" id="historia-wrapper">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase text-center mb-2">Evolución de la diferencia (Últimas F5)</p>
+                    <div class="h-20 w-full">
                         <canvas id="grafico-historia"></canvas>
                     </div>
                 </div>
             </div>
 
-            <div class="lg:col-span-4 flex flex-col gap-8">
-                <div class="bg-white dark:bg-dark-900 rounded-[2rem] p-8 card-shadow border border-slate-100 dark:border-slate-800 flex-1">
-                    <h3 class="text-sm font-black text-slate-400 uppercase tracking-widest mb-6 text-center">Distribución de Fuerzas</h3>
-                    <div class="relative h-64">
-                        <canvas id="grafico-top"></canvas>
-                    </div>
+            <div class="bg-white dark:bg-dark-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 shadow-sm flex flex-col justify-center">
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4 text-center">Distribución Top 3</h2>
+                <div class="relative h-40 w-full">
+                    <canvas id="grafico-top"></canvas>
                 </div>
             </div>
         </div>
 
-        <div class="bg-white dark:bg-dark-900 rounded-[2rem] card-shadow border border-slate-100 dark:border-slate-800 overflow-hidden mb-12">
-            <div class="p-8 border-b border-slate-50 dark:border-slate-800 flex justify-between items-center">
-                <h3 class="text-xl font-extrabold">Escrutinio Proyectado</h3>
-                <div id="actualizando-spinner" class="hidden flex items-center text-xs font-bold text-brand-600">
-                    <svg class="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    Sincronizando...
+        <div class="bg-white dark:bg-dark-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden mb-12">
+            <div class="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-dark-950">
+                <div class="flex items-center space-x-2">
+                    <h2 class="font-bold text-lg">Tabla de Posiciones y Proyecciones</h2>
+                    <span id="actualizando-spinner" class="hidden text-xs bg-brand-100 dark:bg-brand-900/30 text-brand-600 px-2.5 py-1 rounded-full animate-pulse font-semibold">Actualizando...</span>
                 </div>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50/50 dark:bg-dark-950/50">
-                            <th class="px-8 py-4">#</th>
-                            <th class="px-8 py-4">Candidato / Agrupación</th>
-                            <th class="px-8 py-4 text-right">Votos Reales</th>
-                            <th class="px-8 py-4 text-right bg-brand-50/30 dark:bg-brand-900/10 text-brand-600">Proyección 100%*</th>
-                            <th class="px-8 py-4 text-center">Estado</th>
+                        <tr class="bg-white dark:bg-dark-900 text-slate-400 dark:text-slate-500 text-xs uppercase tracking-wider border-b-2 border-slate-100 dark:border-slate-800">
+                            <th class="p-4 font-bold w-16 text-center">Pos</th>
+                            <th class="p-4 font-bold">Candidato</th>
+                            <th class="p-4 font-bold text-right">Votos Contados</th>
+                            <th class="p-4 font-bold text-right bg-brand-50/50 dark:bg-brand-900/10 text-brand-600 dark:text-brand-400">Proyección Final*</th>
+                            <th class="p-4 font-bold text-center">Estado</th>
                         </tr>
                     </thead>
-                    <tbody id="tabla-candidatos" class="divide-y divide-slate-50 dark:divide-slate-800">
+                    <tbody id="tabla-candidatos" class="text-sm divide-y divide-slate-100 dark:divide-slate-800/50">
                         </tbody>
                 </table>
             </div>
         </div>
-
-        <footer class="text-center py-12 border-t border-slate-200 dark:border-slate-800">
-            <p class="text-sm font-bold text-slate-400 mb-2">Desarrollado independientemente por Diego Pongo © 2026</p>
-            <p class="text-[10px] text-slate-400 max-w-2xl mx-auto px-4 uppercase tracking-tighter">Este portal no es oficial y utiliza modelos matemáticos de tendencia lineal y momentum. Los datos son consumidos directamente de los puntos de enlace públicos de la ONPE.</p>
-        </div>
-    </main>
+    </div>
 
     <script>
-        // CONFIGURACIÓN API Y ESTADO
+        // CONFIGURACIÓN API
         const URL_CANDS = "/api/onpe/candidatos";
         const URL_RES = "/api/onpe/resumen";
-        let chartDona = null;
+        let graficoDonut = null;
         let chartHistoria = null;
 
-        // MANEJO DE MODO OSCURO
+        // MODO OSCURO
         function toggleDarkMode() {
             document.documentElement.classList.toggle('dark');
             const isDark = document.documentElement.classList.contains('dark');
             localStorage.setItem('theme', isDark ? 'dark' : 'light');
             document.getElementById('dark-icon').innerText = isDark ? '☀️' : '🌙';
+            if(graficoDonut) { Chart.defaults.color = isDark ? '#94a3b8' : '#64748b'; graficoDonut.update(); }
         }
-
-        // PERSISTENCIA DE TEMA
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
             document.getElementById('dark-icon').innerText = '☀️';
         }
 
-        // COMPARTIR
+        // COMPARTIR WHATSAPP
         async function compartirApp() {
             if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: 'Monitor Electoral Perú 2026',
-                        text: 'Mira la diferencia de votos y proyecciones en tiempo real. ¡No necesitas calculadora!',
-                        url: window.location.href,
-                    });
-                } catch (err) { console.log("Error al compartir"); }
-            } else {
-                alert("Copia este link y envíalo: " + window.location.href);
-            }
+                try { await navigator.share({ title: 'Monitor ONPE Diego Pongo', url: window.location.href }); } 
+                catch (err) { console.log(err); }
+            } else { alert("Copia el enlace: " + window.location.href); }
+        }
+
+        // MAPEO DE IMÁGENES (RESTAURADO)
+        function obtenerRutaImagen(nombre) {
+            const n = nombre.toUpperCase();
+            if (n.includes("KEIKO") || n.includes("FUJIMORI")) return "Keiko.png";
+            if (n.includes("RAFAEL") || n.includes("ALIAGA") || n.includes("LÓPEZ")) return "Rafael.png";
+            if (n.includes("SANCHEZ") || n.includes("SÁNCHEZ")) return "Sanchez.png";
+            return null; 
         }
 
         async function cargarDatos() {
             document.getElementById('actualizando-spinner').classList.remove('hidden');
             try {
-                const t = new Date().getTime();
+                const t = new Date().getTime(); 
                 const [resCands, resResumen] = await Promise.all([
                     fetch(`${URL_CANDS}?t=${t}`).then(res => res.json()),
                     fetch(`${URL_RES}?t=${t}`).then(res => res.json())
                 ]);
                 procesarDatos(resCands.data || [], resResumen.data || {});
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error(e); } 
             finally { document.getElementById('actualizando-spinner').classList.add('hidden'); }
         }
 
         function procesarDatos(cands, resumen) {
-            const pct = parseFloat(resumen.actasContabilizadas) || 0;
-            let totalVotos = 0;
-            
-            // MAPEO Y CÁLCULOS
+            // HORA
+            document.getElementById('hora-actualizacion').innerText = `Hora ONPE: ${resumen.fechaActualizacion || '...'}`;
+
+            // CÁLCULOS MATEMÁTICOS ORIGINALES
+            const pctAvance = parseFloat(resumen.actasContabilizadas) || 0;
+            let totalVotosActuales = 0;
+            let historial = JSON.parse(localStorage.getItem('onpe_memoria_votos_dp')) || { pct: 0, cands: {} };
+            let usarTendenciaAvanzada = false;
+            let deltaPct = pctAvance - historial.pct;
+
+            if (deltaPct > 0.05 && deltaPct < 100) usarTendenciaAvanzada = true;
+
             let candidatos = cands.filter(c => c.nombreCandidato).map(c => {
-                const v = parseInt(c.totalVotosValidos) || 0;
-                totalVotos += v;
-                return { 
-                    nombre: c.nombreCandidato, 
-                    partido: c.nombreAgrupacionPolitica, 
-                    votos: v,
-                    proyeccion: pct > 0 ? Math.round(v / (pct/100)) : 0
-                };
-            }).sort((a,b) => b.votos - a.votos);
+                const votos = parseInt(c.totalVotosValidos) || 0;
+                const nombre = c.nombreCandidato;
+                totalVotosActuales += votos;
+                
+                let proyeccion = 0;
+                let tipoProyeccion = "Lineal";
+                let nuevosVotos = (historial.cands[nombre] !== undefined) ? votos - historial.cands[nombre] : 0;
 
-            // ACTUALIZAR UI BÁSICA
-            document.getElementById('avance-txt').innerText = `${pct.toFixed(2)}%`;
-            document.getElementById('votos-actuales-txt').innerText = totalVotos.toLocaleString('es-PE');
-            document.getElementById('hora-actualizacion').innerText = `Último reporte oficial: ${resumen.fechaActualizacion || 'Sincronizando...'}`;
-
-            // LÓGICA DE HISTORIA (PARA EL GRÁFICO NUEVO)
-            if (candidatos.length >= 3) {
-                const diff = candidatos[1].votos - candidatos[2].votos;
-                guardarEnHistoria(diff);
-                renderizarDisputa(candidatos[1], candidatos[2], diff);
-            }
-
-            renderizarDona(candidatos.slice(0,3));
-            renderizarTabla(candidatos);
-        }
-
-        function guardarEnHistoria(diff) {
-            let hist = JSON.parse(localStorage.getItem('onpe_hist_diff') || '[]');
-            const label = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            if (hist.length === 0 || hist[hist.length-1].val !== diff) {
-                hist.push({ time: label, val: diff });
-                if (hist.length > 15) hist.shift();
-                localStorage.setItem('onpe_hist_diff', JSON.stringify(hist));
-            }
-            renderizarLineaHistoria(hist);
-        }
-
-        function renderizarLineaHistoria(histData) {
-            const ctx = document.getElementById('grafico-historia').getContext('2d');
-            if (chartHistoria) chartHistoria.destroy();
-            chartHistoria = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: histData.map(d => d.time),
-                    datasets: [{
-                        label: 'Diferencia Votos',
-                        data: histData.map(d => d.val),
-                        borderColor: '#3b82f6',
-                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 3,
-                        pointRadius: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { 
-                        x: { display: false }, 
-                        y: { display: true, position: 'right', grid: { display: false }, ticks: { font: { size: 9 }, color: '#94a3b8' } }
-                    }
+                if (usarTendenciaAvanzada && historial.cands[nombre] !== undefined) {
+                    const vel = nuevosVotos / deltaPct; 
+                    proyeccion = Math.round(votos + (vel * (100 - pctAvance)));
+                    tipoProyeccion = "Tendencia";
+                    if (proyeccion < votos) proyeccion = Math.round(votos / (pctAvance / 100));
+                } else {
+                    proyeccion = (pctAvance > 0) ? Math.round(votos / (pctAvance / 100)) : 0;
                 }
+                return { nombre, partido: c.nombreAgrupacionPolitica, votosActuales: votos, proyeccion, tipoProyeccion, nuevosVotos };
             });
-        }
 
-        function renderizarDisputa(c2, c3, diff) {
-            const badge = document.getElementById('badge-tension');
-            if (diff < 10000) badge.classList.remove('hidden');
-            else badge.classList.add('hidden');
+            localStorage.setItem('onpe_memoria_votos_dp', JSON.stringify({ pct: pctAvance, cands: Object.fromEntries(candidatos.map(c => [c.nombre, c.votosActuales])) }));
+            candidatos.sort((a, b) => b.votosActuales - a.votosActuales);
 
-            document.getElementById('disputa-container').innerHTML = `
-                <div class="grid grid-cols-1 md:grid-cols-3 w-full gap-8 items-center">
-                    <div class="text-center">
-                        <p class="text-4xl font-black mb-1">${c2.nombre.split(' ')[0]}</p>
-                        <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">2do Lugar</p>
-                    </div>
-                    <div class="bg-brand-50 dark:bg-brand-900/20 p-6 rounded-3xl border border-brand-100 dark:border-brand-800/50 text-center">
-                        <p class="text-[10px] font-black text-brand-600 uppercase mb-2">Brecha de Votos</p>
-                        <p class="text-4xl font-mono font-black text-brand-700 dark:text-brand-400 tracking-tighter">${diff.toLocaleString('es-PE')}</p>
-                    </div>
-                    <div class="text-center">
-                        <p class="text-4xl font-black mb-1">${c3.nombre.split(' ')[0]}</p>
-                        <p class="text-sm font-bold text-slate-400 uppercase tracking-widest">3er Lugar</p>
-                    </div>
-                </div>
-            `;
-        }
+            // ACTUALIZAR TARJETAS SUPERIORES
+            let votosRestantes = (pctAvance > 0 && pctAvance < 100) ? Math.round(totalVotosActuales * (100 - pctAvance) / pctAvance) : 0;
+            document.getElementById('avance-txt').innerText = `${pctAvance.toFixed(2)}%`;
+            document.getElementById('avance-bar').style.width = `${pctAvance}%`;
+            document.getElementById('votos-actuales-txt').innerText = totalVotosActuales.toLocaleString('es-PE');
+            document.getElementById('votos-restantes-txt').innerText = votosRestantes.toLocaleString('es-PE');
 
-        function renderizarDona(top) {
-            const ctx = document.getElementById('grafico-top').getContext('2d');
-            if (chartDona) {
-                chartDona.data.datasets[0].data = top.map(c => c.votos);
-                chartDona.update();
-            } else {
-                chartDona = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: top.map(c => c.nombre.split(' ')[0]),
-                        datasets: [{
-                            data: top.map(c => c.votos),
-                            backgroundColor: ['#2563eb', '#8b5cf6', '#f59e0b'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        cutout: '80%',
-                        plugins: { legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20, font: { weight: 'bold' } } } }
-                    }
-                });
+            // GRÁFICO DONA
+            if(candidatos.length >= 3) renderizarGrafico(candidatos.slice(0, 3));
+
+            // TARJETA DISPUTA Y FOTOS (RESTAURADO A COMO LO QUERÍAS)
+            if (candidatos.length >= 3) {
+                const cand2 = candidatos[1];
+                const cand3 = candidatos[2];
+                const dif = cand2.votosActuales - cand3.votosActuales;
+                
+                // Tensión visual
+                const tjDisputa = document.getElementById('tarjeta-disputa');
+                if (dif < 15000) { tjDisputa.classList.add('tension-electoral'); document.getElementById('alerta-sorpasso-badge').classList.remove('hidden'); } 
+                else { tjDisputa.classList.remove('tension-electoral'); document.getElementById('alerta-sorpasso-badge').classList.add('hidden'); }
+
+                document.getElementById('disputa-container').innerHTML = `
+                    <div class="flex flex-col md:flex-row items-center justify-between">
+                        <div class="text-center md:text-left flex-1 flex flex-col md:flex-row items-center">
+                            ${obtenerRutaImagen(cand2.nombre) ? `<img src="${obtenerRutaImagen(cand2.nombre)}" class="w-16 h-16 rounded-full object-cover border-4 border-white dark:border-dark-800 shadow-md mb-3 md:mb-0 md:mr-4 bg-slate-200">` : ''}
+                            <div>
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">2do Lugar</div>
+                                <div class="text-xl font-extrabold leading-tight">${cand2.nombre}</div>
+                                <div class="text-xl font-mono text-slate-600 dark:text-slate-400 mt-1">${cand2.votosActuales.toLocaleString('es-PE')}</div>
+                            </div>
+                        </div>
+                        <div class="flex flex-col items-center justify-center flex-1 my-5 md:my-0">
+                            <div class="text-xs font-bold text-slate-400 uppercase mb-2">Diferencia</div>
+                            <div class="bg-slate-900 dark:bg-black text-white font-mono text-3xl font-black px-7 py-2.5 rounded-2xl shadow-inner border border-slate-700 dark:border-slate-800">
+                                ${dif.toLocaleString('es-PE')}
+                            </div>
+                        </div>
+                        <div class="text-center md:text-right flex-1 flex flex-col md:flex-row-reverse items-center">
+                            ${obtenerRutaImagen(cand3.nombre) ? `<img src="${obtenerRutaImagen(cand3.nombre)}" class="w-16 h-16 rounded-full object-cover border-4 border-white dark:border-dark-800 shadow-md mb-3 md:mb-0 md:ml-4 bg-slate-200">` : ''}
+                            <div>
+                                <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">3er Lugar</div>
+                                <div class="text-xl font-extrabold leading-tight">${cand3.nombre}</div>
+                                <div class="text-xl font-mono text-slate-600 dark:text-slate-400 mt-1">${cand3.votosActuales.toLocaleString('es-PE')}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // GRÁFICO LÍNEA DE HISTORIA 
+                guardarEnHistoria(dif);
+                document.getElementById('historia-wrapper').classList.remove('hidden');
             }
-        }
 
-        function renderizarTabla(cands) {
+            // TABLA DE CANDIDATOS (RESTAURADA CON FOTOS)
             const tbody = document.getElementById('tabla-candidatos');
             tbody.innerHTML = '';
-            cands.forEach((c, i) => {
-                const pos = i + 1;
-                const status = pos <= 2 ? 
-                    '<span class="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-3 py-1 rounded-lg text-[10px] font-black uppercase">Clasifica</span>' : 
-                    '<span class="bg-slate-100 text-slate-400 dark:bg-dark-800 px-3 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest">Espera</span>';
+            candidatos.forEach((cand, index) => {
+                const pos = index + 1;
+                let estadoHTML = pos <= 2 ? `<span class="bg-emerald-50 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-3.5 py-1.5 rounded-lg text-xs font-bold">Clasifica</span>` : `<span class="bg-slate-50 text-slate-400 dark:bg-dark-800 px-3.5 py-1.5 rounded-lg text-xs font-medium">Espera</span>`;
 
                 tbody.insertAdjacentHTML('beforeend', `
-                    <tr class="hover:bg-slate-50 dark:hover:bg-dark-800 transition-colors">
-                        <td class="px-8 py-6 font-black text-slate-300 text-lg">${pos}</td>
-                        <td class="px-8 py-6">
-                            <p class="font-extrabold text-base leading-none mb-1">${c.nombre}</p>
-                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-tighter">${c.partido}</p>
+                    <tr class="hover:bg-brand-50/50 dark:hover:bg-dark-800 transition-colors group">
+                        <td class="p-4 font-black text-slate-400 text-center text-base">${pos}</td>
+                        <td class="p-4 flex items-center">
+                            ${obtenerRutaImagen(cand.nombre) ? `<img src="${obtenerRutaImagen(cand.nombre)}" class="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700 shadow-sm mr-4 bg-slate-200">` : `<div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-dark-800 flex items-center justify-center text-slate-400 font-black mr-4">${pos}</div>`}
+                            <div>
+                                <div class="font-extrabold text-base leading-snug">${cand.nombre}</div>
+                                <div class="text-xs text-slate-500">${cand.partido}</div>
+                            </div>
                         </td>
-                        <td class="px-8 py-6 text-right font-mono font-bold text-slate-600 dark:text-slate-400">${c.votos.toLocaleString('es-PE')}</td>
-                        <td class="px-8 py-6 text-right font-mono font-black text-brand-600 bg-brand-50/20 dark:bg-brand-900/5">${c.proyeccion.toLocaleString('es-PE')}</td>
-                        <td class="px-8 py-6 text-center">${status}</td>
+                        <td class="p-4 text-right">
+                            <div class="font-mono text-base font-semibold text-slate-700 dark:text-slate-300">${cand.votosActuales.toLocaleString('es-PE')}</div>
+                            ${cand.nuevosVotos > 0 ? `<div class="text-[10px] text-emerald-500 font-bold mt-1">+${cand.nuevosVotos.toLocaleString('es-PE')} recientes</div>` : ''}
+                        </td>
+                        <td class="p-4 text-right font-mono font-black text-brand-600 dark:text-brand-400 bg-brand-50/40 dark:bg-brand-900/10 text-base">${cand.proyeccion.toLocaleString('es-PE')}</td>
+                        <td class="p-4 text-center">${estadoHTML}</td>
                     </tr>
                 `);
             });
         }
 
-        // INICIO
+        function renderizarGrafico(topCandidatos) {
+            const ctx = document.getElementById('grafico-top').getContext('2d');
+            const data = topCandidatos.map(c => c.votosActuales);
+            if (graficoDonut) { graficoDonut.data.datasets[0].data = data; graficoDonut.update(); } 
+            else {
+                Chart.defaults.color = document.documentElement.classList.contains('dark') ? '#94a3b8' : '#64748b';
+                graficoDonut = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: { labels: topCandidatos.map(c => c.nombre.split(' ')[0]), datasets: [{ data: data, backgroundColor: ['#3b82f6', '#8b5cf6', '#f59e0b'], borderWidth: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { position: 'bottom' } } }
+                });
+            }
+        }
+
+        function guardarEnHistoria(diff) {
+            let hist = JSON.parse(localStorage.getItem('onpe_hist_diff_v2') || '[]');
+            const label = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            if (hist.length === 0 || hist[hist.length-1].val !== diff) {
+                hist.push({ time: label, val: diff });
+                if (hist.length > 10) hist.shift();
+                localStorage.setItem('onpe_hist_diff_v2', JSON.stringify(hist));
+            }
+            if (chartHistoria) { chartHistoria.data.labels = hist.map(d=>d.time); chartHistoria.data.datasets[0].data = hist.map(d=>d.val); chartHistoria.update(); }
+            else {
+                const ctx = document.getElementById('grafico-historia').getContext('2d');
+                chartHistoria = new Chart(ctx, {
+                    type: 'line',
+                    data: { labels: hist.map(d=>d.time), datasets: [{ data: hist.map(d=>d.val), borderColor: '#f59e0b', backgroundColor: 'rgba(245, 158, 11, 0.1)', fill: true, tension: 0.4, borderWidth: 2, pointRadius: 0 }] },
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
+                });
+            }
+        }
+
         window.onload = () => { cargarDatos(); setInterval(cargarDatos, 180000); };
     </script>
 </body>
